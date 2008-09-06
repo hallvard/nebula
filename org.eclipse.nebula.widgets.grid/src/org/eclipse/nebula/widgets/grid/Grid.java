@@ -9894,6 +9894,13 @@ public class Grid extends Canvas
     	if (items.size() > 0)
     		clear(0, items.size()-1, allChildren);
     }
+    
+    void recalculateHeader() {
+        computeHeaderHeight(sizingGC);
+        scrollValuesObsolete = true;
+        redraw();    	
+    }
+
 }
 
 

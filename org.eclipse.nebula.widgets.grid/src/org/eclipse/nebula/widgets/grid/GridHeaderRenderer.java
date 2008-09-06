@@ -40,4 +40,14 @@ public abstract class GridHeaderRenderer extends AbstractInternalWidget
     {
         return null;
     }
+
+	/**
+	 * Returns the bounds of the control to display
+	 * 
+	 * @return the bounds for the control or <code>null</code> if no control is
+	 *         rendered
+	 */
+	protected Rectangle getControlBounds(Object value, boolean preferred) {
+		return null;
+	}
 }

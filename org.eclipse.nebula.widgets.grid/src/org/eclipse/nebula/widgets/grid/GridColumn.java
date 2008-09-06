@@ -18,6 +18,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.TypedListener;
@@ -41,6 +42,8 @@ import org.eclipse.swt.widgets.TypedListener;
 public class GridColumn extends Item
 {
 
+	private GridHeaderEditor controlEditor;
+	
     /**
      * Default width of the column.
      */
@@ -1086,4 +1089,30 @@ public class GridColumn extends Item
         cellRenderer.setWordWrap(wordWrap);
         parent.redraw();
     }
+    
+    /**
+	 * Set a new editor at the top of the control. If there's an editor already
+	 * set it is disposed.
+	 * 
+	 * @param control
+	 *            the control to be displayed in the header
+	 */
+	public void setHeaderControl(Control control) {
+		if (this.controlEditor == null) {
+			this.controlEditor = new GridHeaderEditor(this);
+			this.controlEditor.initColumn();
+		}
+		this.controlEditor.setEditor(control);
+		getParent().recalculateHeader();
+	}
+
+	/**
+	 * @return the current header control
+	 */
+	public Control getHeaderControl() {
+		if (this.controlEditor != null) {
+			return this.controlEditor.getEditor();
+		}
+		return null;
+	}
 }
