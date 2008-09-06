@@ -8527,6 +8527,13 @@ public class Grid extends Canvas
     }
     
     /**
+     * @return <code>true</code> if cell selection is enabled
+     */
+    public boolean isCellSelectionEnabled() {
+    	return cellSelectionEnabled;
+    }
+    
+    /**
      * Deselects the given cell in the receiver.  If the given cell is already
      * deselected it remains deselected.  Invalid cells are ignored.
      * 
