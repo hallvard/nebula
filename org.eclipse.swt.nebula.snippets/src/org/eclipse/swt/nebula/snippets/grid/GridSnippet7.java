@@ -39,6 +39,7 @@ public class GridSnippet7 {
 		final Grid grid = new Grid(shell, SWT.BORDER | SWT.V_SCROLL
 				| SWT.H_SCROLL);
 		grid.setHeaderVisible(true);
+		grid.setFooterVisible(true);
 
 		GridColumn column = new GridColumn(grid, SWT.NONE);
 		column.setText("Column 1");
