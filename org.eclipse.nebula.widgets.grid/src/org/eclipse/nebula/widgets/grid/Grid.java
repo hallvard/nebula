@@ -16,9 +16,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import org.eclipse.nebula.widgets.grid.internal.DefaultBottomLeftRenderer;
 import org.eclipse.nebula.widgets.grid.internal.DefaultColumnGroupHeaderRenderer;
 import org.eclipse.nebula.widgets.grid.internal.DefaultDropPointRenderer;
 import org.eclipse.nebula.widgets.grid.internal.DefaultEmptyCellRenderer;
+import org.eclipse.nebula.widgets.grid.internal.DefaultEmptyColumnFooterRenderer;
 import org.eclipse.nebula.widgets.grid.internal.DefaultEmptyColumnHeaderRenderer;
 import org.eclipse.nebula.widgets.grid.internal.DefaultEmptyRowHeaderRenderer;
 import org.eclipse.nebula.widgets.grid.internal.DefaultFocusRenderer;
@@ -249,6 +251,11 @@ public class Grid extends Canvas
      * shown.
      */
     private IRenderer topLeftRenderer = new DefaultTopLeftRenderer();
+    
+    /**
+     * Renderer to paint the bottom left area when row headers and column footers are shown
+     */
+    private IRenderer bottomLeftRenderer = new DefaultBottomLeftRenderer();
 
     /**
      * Renderer used to paint row headers.
@@ -261,6 +268,12 @@ public class Grid extends Canvas
      */
     private IRenderer emptyColumnHeaderRenderer = new DefaultEmptyColumnHeaderRenderer();
 
+    /**
+     * Renderer used to paint empty column footers, used when the columns don't
+     * fill the horz space.
+     */
+    private IRenderer emptyColumnFooterRenderer = new DefaultEmptyColumnFooterRenderer();
+    
     /**
      * Renderer used to paint empty cells to fill horz and vert space.
      */
@@ -293,6 +306,11 @@ public class Grid extends Canvas
      */
     private boolean columnHeadersVisible = false;
 
+    /**
+     * Are column footers visible?
+     */
+    private boolean columnFootersVisible = false;
+    
     /**
      * Type of selection behavior. Valid values are SWT.SINGLE and SWT.MULTI.
      */
@@ -333,6 +351,11 @@ public class Grid extends Canvas
      * Height of each column header.
      */
     private int headerHeight = 0;
+    
+    /**
+     * Height of each column footer
+     */
+    private int footerHeight = 0;
 
     /**
      * True if mouse is hover on a column boundary and can resize the column.
@@ -685,8 +708,10 @@ public class Grid extends Canvas
         sizingGC = new GC(this);
         
         topLeftRenderer.setDisplay(getDisplay());
+        bottomLeftRenderer.setDisplay(getDisplay());
         rowHeaderRenderer.setDisplay(getDisplay());
         emptyColumnHeaderRenderer.setDisplay(getDisplay());
+        emptyColumnFooterRenderer.setDisplay(getDisplay());
         emptyCellRenderer.setDisplay(getDisplay());
         dropPointRenderer.setDisplay(getDisplay());
         focusRenderer.setDisplay(getDisplay());
@@ -1487,6 +1512,22 @@ public class Grid extends Canvas
     }
 
     /**
+     * Returns the empty column footer renderer.
+     * 
+     * @return Returns the emptyColumnFooterRenderer.
+     * @throws org.eclipse.swt.SWTException
+     * <ul>
+     * <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+     * <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that
+     * created the receiver</li>
+     * </ul>
+     */
+    public IRenderer getEmptyColumnFooterRenderer() {
+    	checkWidget();
+    	return emptyColumnFooterRenderer;
+    }
+    
+    /**
      * Returns the empty row header renderer.
      * 
      * @return Returns the emptyRowHeaderRenderer.
@@ -1575,6 +1616,22 @@ public class Grid extends Canvas
     }
 
     /**
+     * Returns the height of the column footers.
+     * 
+     * @return height of the column footer row
+     * @throws org.eclipse.swt.SWTException
+     * <ul>
+     * <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+     * <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that
+     * created the receiver</li>
+     * </ul>
+     */
+    public int getFooterHeight() {
+    	checkWidget();
+    	return footerHeight;
+    }
+    
+    /**
      * Returns the height of the column group headers.
      * 
      * @return height of column group headers
@@ -1609,6 +1666,21 @@ public class Grid extends Canvas
         return columnHeadersVisible;
     }
 
+    /**
+     * Returns {@code true} if the receiver's footer is visible, and {@code false} otherwise
+     * @return the receiver's footer's visibility state
+     * @throws org.eclipse.swt.SWTException
+     * <ul>
+     * <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+     * <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that
+     * created the receiver</li>
+     * </ul>
+     */
+    public boolean getFooterVisible() {
+    	checkWidget();
+    	return columnFootersVisible;
+    }
+    
     /**
      * Returns the item at the given, zero-relative index in the receiver.
      * Throws an exception if the index is out of range.
@@ -2660,7 +2732,7 @@ public class Grid extends Canvas
      * @return height of visible grid in pixels
      */
     int getVisibleGridHeight() {
-        return getClientArea().height - (columnHeadersVisible ? headerHeight : 0);
+        return getClientArea().height - (columnHeadersVisible ? headerHeight : 0) - (columnFootersVisible ? footerHeight : 0);
     }
 
     /**
@@ -2678,6 +2750,23 @@ public class Grid extends Canvas
     {
         checkWidget();
         return topLeftRenderer;
+    }
+    
+    /**
+     * Gets the bottom left renderer.
+     * 
+     * @return Returns the bottomLeftRenderer.
+     * @throws org.eclipse.swt.SWTException
+     * <ul>
+     * <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+     * <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that
+     * created the receiver</li>
+     * </ul>
+     */
+    public IRenderer getBottomLeftRenderer()
+    {
+        checkWidget();
+        return bottomLeftRenderer;
     }
 
     /**
@@ -3269,6 +3358,24 @@ public class Grid extends Canvas
         emptyColumnHeaderRenderer.setDisplay(getDisplay());
         this.emptyColumnHeaderRenderer = emptyColumnHeaderRenderer;
     }
+    
+    /**
+     * Sets the empty column footer renderer.
+     * 
+     * @param emptyColumnFooterRenderer The emptyColumnFooterRenderer to set.
+     * @throws org.eclipse.swt.SWTException
+     * <ul>
+     * <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+     * <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that
+     * created the receiver</li>
+     * </ul>
+     */
+    public void setEmptyColumnFooterRenderer(IRenderer emptyColumnFooterRenderer)
+    {
+        checkWidget();
+        emptyColumnFooterRenderer.setDisplay(getDisplay());
+        this.emptyColumnFooterRenderer = emptyColumnFooterRenderer;
+    }
 
     /**
      * Sets the empty row header renderer.
@@ -3393,6 +3500,25 @@ public class Grid extends Canvas
     {
         checkWidget();
         this.columnHeadersVisible = show;
+        redraw();
+    }
+    
+    /**
+     * Marks the receiver's footer as visible if the argument is {@code true},
+     * and marks it invisible otherwise.
+     * 
+     * @param show the new visibility state
+     * @throws org.eclipse.swt.SWTException
+     * <ul>
+     * <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+     * <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that
+     * created the receiver</li>
+     * </ul>
+     */
+    public void setFooterVisible(boolean show)
+    {
+        checkWidget();
+        this.columnFootersVisible = show;
         redraw();
     }
 
@@ -3798,6 +3924,24 @@ public class Grid extends Canvas
         topLeftRenderer.setDisplay(getDisplay());
         this.topLeftRenderer = topLeftRenderer;
     }
+    
+    /**
+     * Sets the bottom left renderer.
+     * 
+     * @param bottomLeftRenderer The topLeftRenderer to set.
+     * @throws org.eclipse.swt.SWTException
+     * <ul>
+     * <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+     * <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that
+     * created the receiver</li>
+     * </ul>
+     */
+    public void setBottomLeftRenderer(IRenderer bottomLeftRenderer)
+    {
+        checkWidget();
+        bottomLeftRenderer.setDisplay(getDisplay());
+        this.bottomLeftRenderer = bottomLeftRenderer;
+    }
 
     /**
      * Shows the column. If the column is already showing in the receiver, this
@@ -4117,6 +4261,21 @@ public class Grid extends Canvas
         headerHeight = colHeaderHeight + groupHeight;
         groupHeaderHeight = groupHeight;
     }
+    
+    private void computeFooterHeight(GC gc)
+    {
+
+        int colFooterHeight = 0;
+        for (Iterator columnsIterator = columns.iterator(); columnsIterator.hasNext(); )
+        {
+            GridColumn column = (GridColumn) columnsIterator.next();
+            colFooterHeight = Math
+                .max(column.getFooterRenderer().computeSize(gc, column.getWidth(), SWT.DEFAULT,
+                                                            column).y, colFooterHeight);
+        }
+
+        footerHeight = colFooterHeight;
+    }
 
     /**
      * Returns the computed default item height. Currently this method just gets the
@@ -4223,6 +4382,10 @@ public class Grid extends Canvas
         if (columnHeadersVisible)
         {
             y += headerHeight;
+        }
+        
+        if(columnFootersVisible) {
+        	y += footerHeight;
         }
 
         y += getGridHeight();
@@ -4612,6 +4775,22 @@ public class Grid extends Canvas
         return true;
     }
 
+    private boolean handleColumnFooterPush(int x, int y)
+    {
+    	if(!columnFootersVisible) {
+    		return false;
+    	}
+    	
+    	GridColumn overThis = overColumnFooter(x, y);
+
+        if (overThis == null)
+        {
+            return false;
+        }
+
+        return true;
+    }
+    
     /**
      * Sets the new width of the column being resized and fires the appropriate
      * listeners.
@@ -5238,6 +5417,11 @@ public class Grid extends Canvas
                     getClientArea().height);
             insertMarkRenderer.paint(e.gc, new Rectangle(insertMarkPosX1, insertMarkPosY, insertMarkPosX2 - insertMarkPosX1, 0));
         }
+        
+        if (columnFootersVisible)
+        {
+            paintFooter(e.gc);
+        }
     }
 
     /**
@@ -5262,6 +5446,26 @@ public class Grid extends Canvas
                     return null;
                 }
             }
+        }
+
+        return col;
+    }
+    
+    /**
+     * Returns a column reference if the x,y coordinates are over a column
+     * header (header only).
+     * 
+     * @param x mouse x
+     * @param y mouse y
+     * @return column reference which mouse is over, or null.
+     */
+    private GridColumn overColumnFooter(int x, int y)
+    {
+        GridColumn col = null;
+
+        if (y >= getClientArea().height - footerHeight )
+        {
+            col = getColumn(new Point(x, y));
         }
 
         return col;
@@ -5475,6 +5679,59 @@ public class Grid extends Canvas
 
     }
 
+    private void paintFooter(GC gc) {
+    	int x = 0;
+        int y = 0;
+
+        x -= getHScrollSelectionInPixels();
+        
+        if (rowHeaderVisible)
+        {
+            // paint left corner
+            // topLeftRenderer.setBounds(0, y, rowHeaderWidth, headerHeight);
+            // topLeftRenderer.paint(gc, null);
+            x += rowHeaderWidth;
+        }
+        
+        for (Iterator columnIterator = displayOrderedColumns.iterator(); columnIterator.hasNext(); ) {
+        	if (x > getClientArea().width)
+        		break;
+        	
+        	GridColumn column = (GridColumn) columnIterator.next();
+        	int height = 0;
+        	
+        	if (!column.isVisible())
+        	{
+        		continue;
+        	}
+
+        	height = footerHeight;
+        	y = getClientArea().height - height;
+        	
+        	column.getFooterRenderer().setBounds(x, y, column.getWidth(), height);
+        	if (x + column.getWidth() >= 0)
+        	{
+        		column.getFooterRenderer().paint(gc, column);	
+        	}
+        	
+        	x += column.getWidth();
+        }
+        
+      if (x < getClientArea().width)
+      {
+    	  emptyColumnFooterRenderer.setBounds(x, getClientArea().height - footerHeight, getClientArea().width - x, footerHeight);
+    	  emptyColumnFooterRenderer.paint(gc, null);
+      }
+
+      if (rowHeaderVisible)
+      {
+        // paint left corner
+    	bottomLeftRenderer.setBounds(0, getClientArea().height-footerHeight, rowHeaderWidth, footerHeight);
+    	bottomLeftRenderer.paint(gc, this);
+        x += rowHeaderWidth;
+      }
+    }
+    
     /**
      * Manages the state of the scrollbars when new items are added or the
      * bounds are changed.
@@ -6247,6 +6504,10 @@ public class Grid extends Canvas
         if (e.button == 1 && handleColumnGroupHeaderClick(e.x, e.y))
         {
             return;
+        }
+        
+        if(e.button == 1 && handleColumnFooterPush(e.x,e.y)) {
+        	return;
         }
 
         GridItem item = getItem(new Point(e.x, e.y));
@@ -7424,20 +7685,22 @@ public class Grid extends Canvas
         {
             if (item != null)
             {
-                col.getCellRenderer().setBounds(item.getBounds(columns.indexOf(col)));
+            	if( y < getClientArea().height - footerHeight  ) {
+                    col.getCellRenderer().setBounds(item.getBounds(columns.indexOf(col)));
 
-                if (col.getCellRenderer().notify(IInternalWidget.MouseMove, new Point(x, y), item))
-                {
-                    detail = col.getCellRenderer().getHoverDetail();
-                }
+                    if (col.getCellRenderer().notify(IInternalWidget.MouseMove, new Point(x, y), item))
+                    {
+                        detail = col.getCellRenderer().getHoverDetail();
+                    }
 
-                Rectangle textBounds = col.getCellRenderer().getTextBounds(item,false);
-                
-                if (textBounds != null)
-                {
-                    Point p = new Point(x - col.getCellRenderer().getBounds().x, y - col.getCellRenderer().getBounds().y);
-                    overText = textBounds.contains(p);                  
-                }               
+                    Rectangle textBounds = col.getCellRenderer().getTextBounds(item,false);
+                    
+                    if (textBounds != null)
+                    {
+                        Point p = new Point(x - col.getCellRenderer().getBounds().x, y - col.getCellRenderer().getBounds().y);
+                        overText = textBounds.contains(p);                  
+                    }            		
+            	}
             }
             else
             {
@@ -7645,6 +7908,7 @@ public class Grid extends Canvas
         }
 
         computeHeaderHeight(sizingGC);
+        computeFooterHeight(sizingGC);
 
         updatePrimaryCheckColumn();
         
