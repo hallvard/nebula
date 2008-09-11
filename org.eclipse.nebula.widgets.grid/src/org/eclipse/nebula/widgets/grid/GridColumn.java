@@ -1101,6 +1101,20 @@ public class GridColumn extends Item {
 		}
 		this.controlEditor.setEditor(control);
 		getParent().recalculateHeader();
+		
+		if( control != null ) {
+			// We need to realign if multiple editors are set it is possible that
+			// a later one needs more space
+			control.getDisplay().asyncExec(new Runnable() {
+
+				public void run() {
+					if( GridColumn.this.controlEditor != null && GridColumn.this.controlEditor.getEditor() != null ) {
+						GridColumn.this.controlEditor.layout();	
+					}
+				}
+				
+			});
+		}
 	}
 
 	/**
