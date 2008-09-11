@@ -99,6 +99,7 @@ class GridHeaderEditor extends ControlEditor {
 
 			public void handleEvent(Event event) {
 				if (table.getCursor() != null) {
+					// We need to reset because it could be that when we left the resizer was active
 					table.hoveringOnColumnResizer=false;
 					table.setCursor(null);
 				}
