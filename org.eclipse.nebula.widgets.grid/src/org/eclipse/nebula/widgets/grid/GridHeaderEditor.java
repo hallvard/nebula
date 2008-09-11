@@ -99,6 +99,7 @@ class GridHeaderEditor extends ControlEditor {
 
 			public void handleEvent(Event event) {
 				if (table.getCursor() != null) {
+					table.hoveringOnColumnResizer=false;
 					table.setCursor(null);
 				}
 			}

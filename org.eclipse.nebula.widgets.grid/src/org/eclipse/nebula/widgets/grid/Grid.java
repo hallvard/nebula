@@ -360,7 +360,7 @@ public class Grid extends Canvas
     /**
      * True if mouse is hover on a column boundary and can resize the column.
      */
-    private boolean hoveringOnColumnResizer = false;
+    boolean hoveringOnColumnResizer = false;
 
     /**
      * Reference to the column being resized.
