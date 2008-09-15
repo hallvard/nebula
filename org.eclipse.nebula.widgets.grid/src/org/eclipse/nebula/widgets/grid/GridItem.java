@@ -1466,7 +1466,7 @@ public class GridItem extends Item
         }
         images.set(index, image);
         
-        parent.imageSetOnItem(this);
+        parent.imageSetOnItem(index,this);
         
         parent.redraw();
     }

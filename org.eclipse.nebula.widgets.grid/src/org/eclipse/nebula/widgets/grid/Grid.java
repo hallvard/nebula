@@ -100,6 +100,27 @@ public class Grid extends Canvas
     
     //TODO: Performance - need to cache top index
    
+	/**
+	 * Object holding the visible range
+	 */
+	public static class GridVisibleRange {
+    	private GridItem[] items = new GridItem[0];
+    	private GridColumn[] columns = new GridColumn[0];
+    	
+    	/**
+    	 * @return the current items shown
+    	 */
+		public GridItem[] getItems() {
+			return items;
+		}
+		
+		/**
+		 * @return the current columns shown
+		 */
+		public GridColumn[] getColumns() {
+			return columns;
+		}
+    }
 
     /**
      * Accessibility default action for column headers and column group headers.
@@ -586,6 +607,17 @@ public class Grid extends Canvas
      * @see #topIndex
      */
     int bottomIndex = -1;
+    
+    /**
+     * Index of the first visible column. A value of -1 indicates that the value is old and will be recomputed.
+     */
+    int startColumnIndex = -1;
+    
+    /**
+     * Index of the the last visible column. A value of -1 indicates that the value is old and will be recomputed.
+     */
+    int endColumnIndex = -1;
+    
     /**
      * True if the last visible item is completely visible.  The value must never be read directly.  It is cached and
      * updated when appropriate.  #isShown() should be called for every client (even internal 
@@ -639,6 +671,7 @@ public class Grid extends Canvas
 	private GridColumn insertMarkColumn = null;
 	private boolean insertMarkBefore = false;
     private IRenderer insertMarkRenderer = new DefaultInsertMarkRenderer();
+    private boolean sizeOnEveryItemImageChange;
     
     /**
      * A range of rows in a <code>Grid</code>.
@@ -2733,6 +2766,14 @@ public class Grid extends Canvas
      */
     int getVisibleGridHeight() {
         return getClientArea().height - (columnHeadersVisible ? headerHeight : 0) - (columnFootersVisible ? footerHeight : 0);
+    }
+
+    /**
+     * Returns the height of the screen area that is available for showing the grid columns
+     * @return
+     */
+    int getVisibleGridWidth() {
+    	return getClientArea().width - ( rowHeaderVisible ? rowHeaderWidth : 0 );
     }
 
     /**
@@ -9865,17 +9906,29 @@ public class Grid extends Canvas
 	
 	/**
 	 * Updates the row height when the first image is set on an item.
-	 * 
+	 * @param column the column the image is change
 	 * @param item item which images has just been set on.
 	 */
-	void imageSetOnItem(GridItem item)
+	void imageSetOnItem(int column, GridItem item)
 	{
-		if (firstImageSet || userModifiedItemHeight) return;
-		
-		int height = computeItemHeight(item,sizingGC);
-		setItemHeight(height);
-		
-		firstImageSet = true;
+		if( sizeOnEveryItemImageChange ) {
+			if( item == null || item.getImage(column) == null )
+				return;
+			
+			int height = item.getImage(column).getBounds().height;
+			//FIXME Needs better algorithm
+			if( height + 20 > getItemHeight() ) {
+				height = computeItemHeight(item,sizingGC);
+				setItemHeight(height);
+			}
+		} else {
+			if (firstImageSet || userModifiedItemHeight) return;
+			
+			int height = computeItemHeight(item,sizingGC);
+			setItemHeight(height);
+			
+			firstImageSet = true;
+		}
 	}
 
     /**
@@ -10172,6 +10225,118 @@ public class Grid extends Canvas
         redraw();    	
     }
 
+    /**
+     * Query the grid for all currently visible rows and columns
+     * <p>
+     * <b>This support is provisional and may change</b>
+     * </p>
+     * @return all currently visible rows and columns
+     */
+    public GridVisibleRange getVisibleRange() {
+    	//FIXME I think we should remember the topIndex in the onPaint-method
+    	int topIndex = getTopIndex();
+    	int bottomIndex = getBottomIndex();
+    	int startColumnIndex = getStartColumnIndex();
+    	int endColumnIndex = getEndColumnIndex();
+    	
+    	GridVisibleRange range = new GridVisibleRange();
+    	range.items = new GridItem[0];
+    	range.columns = new GridColumn[0];
+    	
+    	if( topIndex <= bottomIndex ) {
+    		if( items.size() > 0 ) {
+        		range.items = new GridItem[bottomIndex - topIndex + 1];
+        		for( int i = topIndex; i <= bottomIndex; i++ ) {
+        			range.items[i - topIndex] = (GridItem) items.get(i);
+        		}
+    		}
+    	}
+    	
+    	if( startColumnIndex <= endColumnIndex ) {
+    		if( displayOrderedColumns.size() > 0 ) {
+    			ArrayList cols = new ArrayList();
+    			for( int i = startColumnIndex; i <= endColumnIndex; i++ ) {
+    				GridColumn col = (GridColumn) displayOrderedColumns.get(i);
+    				if( col.isVisible() ) {
+    					cols.add(col);
+    				}
+    			}
+    			
+    			range.columns = new GridColumn[cols.size()];
+    			cols.toArray(range.columns);
+    		}
+    	}
+    	
+    	return range;
+    }
+    
+    int getStartColumnIndex() {
+    	checkWidget();
+    	
+    	if( startColumnIndex != -1 ) {
+    		return startColumnIndex;
+    	}
+    	
+    	if( !hScroll.getVisible() ) {
+    		startColumnIndex = 0;
+    	}
+    	
+    	startColumnIndex = hScroll.getSelection();
+    	
+    	return startColumnIndex;
+    }
+    
+    int getEndColumnIndex() {
+    	checkWidget();
+    	
+    	if( endColumnIndex != -1 ) {
+    		return endColumnIndex;
+    	}
+    	
+    	if( displayOrderedColumns.size() == 0 ) {
+    		endColumnIndex = 0;
+    	} else if( getVisibleGridWidth() < 1 ) {
+    		endColumnIndex = getStartColumnIndex();
+    	} else {
+    		int x = 0;
+            x -= getHScrollSelectionInPixels();
+            
+            if (rowHeaderVisible)
+            {
+                //row header is actually painted later
+                x += rowHeaderWidth;
+            }
+            
+            int startIndex = getStartColumnIndex();
+            GridColumn[] columns = new GridColumn[displayOrderedColumns.size()];
+            displayOrderedColumns.toArray(columns);
+            
+            for (int i = startIndex; i < columns.length; i++)
+            {
+            	endColumnIndex = i;
+                GridColumn column = columns[i];
+                
+                if (column.isVisible())
+                {
+                    x += column.getWidth();
+                }
+                
+                if (x > getClientArea().width) {
+                	
+                	break;
+                }
+            }
+            
+    	}
+     	
+    	endColumnIndex = Math.max(0, endColumnIndex);
+    	
+    	return endColumnIndex;
+    }
+    
+    void setSizeOnEveryItemImageChange(boolean sizeOnEveryItemImageChange) {
+    	this.sizeOnEveryItemImageChange = sizeOnEveryItemImageChange;
+    }
 }
 
 
