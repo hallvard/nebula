@@ -64,7 +64,7 @@ public class GridViewerSnippet6 {
 		shell.setLayout(new FillLayout());
 
 		final ImageRegistry reg = new ImageRegistry(display);
-		reg.put("ICON", ImageDescriptor.createFromFile(GridViewerSnippet6.class, "user-trash.png"));
+		reg.put("ICON", ImageDescriptor.createFromFile(GridViewerSnippet6.class, "th_vertical.gif"));
 
 		GridTableViewer v = new GridTableViewer(shell, SWT.FULL_SELECTION|SWT.H_SCROLL|SWT.V_SCROLL);
 		v.getGrid().setLinesVisible(true);
