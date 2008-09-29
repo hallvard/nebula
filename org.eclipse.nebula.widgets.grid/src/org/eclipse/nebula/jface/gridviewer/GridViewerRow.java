@@ -161,7 +161,7 @@ public class GridViewerRow extends ViewerRow
     public void setImage(int columnIndex, Image image)
     {
     	if( columnIndex == Integer.MAX_VALUE ) {
-    		//TODO Provide implementation for GridItem
+    		item.setHeaderImage(image);
     	} else {
     		item.setImage(columnIndex, image);
     	}
@@ -220,7 +220,7 @@ public class GridViewerRow extends ViewerRow
 
 		return null;
 	}
-	
+
     /**
      * {@inheritDoc}
      */
@@ -253,7 +253,7 @@ public class GridViewerRow extends ViewerRow
     {
         return item;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -282,7 +282,7 @@ public class GridViewerRow extends ViewerRow
 //	public Rectangle getTextBounds(int index) {
 //		return item.getTextBounds(index);
 //	}
-//	
+//
 //	/* (non-Javadoc)
 //	 * @see org.eclipse.jface.viewers.ViewerRow#getImageBounds(int)
 //	 */
@@ -297,7 +297,7 @@ public class GridViewerRow extends ViewerRow
 	private boolean isValidOrderIndex(int currentIndex) {
 		return currentIndex < this.item.getParent().getColumnOrder().length;
 	}
-	
+
 //	int getWidth(int columnIndex) {
 //		return item.getParent().getColumn(columnIndex).getWidth();
 //	}
