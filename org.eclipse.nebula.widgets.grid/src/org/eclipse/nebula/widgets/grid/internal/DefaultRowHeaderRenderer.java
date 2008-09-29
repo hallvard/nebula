@@ -124,7 +124,12 @@ public class DefaultRowHeaderRenderer extends AbstractRenderer
         Image image = getHeaderImage(item);
 
         if( image != null ) {
-        	gc.drawImage(image, x, getBounds().y + (getBounds().height - image.getBounds().height)/2);
+        	if( isSelected() && !item.getParent().getCellSelectionEnabled() ) {
+        		gc.drawImage(image, x + 1, getBounds().y + 1 + (getBounds().height - image.getBounds().height)/2);
+        		x += 1;
+        	} else {
+        		gc.drawImage(image, x, getBounds().y + (getBounds().height - image.getBounds().height)/2);
+        	}
         	x += image.getBounds().width + 5;
         }
 
