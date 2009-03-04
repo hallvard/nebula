@@ -36,10 +36,18 @@ public class GridViewerEditor extends ColumnViewerEditor {
 	/** Editor support for tables. */
     private GridEditor gridEditor;
 
+    /**
+     * The selection follows the editor
+     */
+    public static final int SELECTION_FOLLOWS_EDITOR = 1 << 30;
+    
+    private boolean selectionFollowsEditor = false;
+    
 	GridViewerEditor(ColumnViewer viewer,
 			ColumnViewerEditorActivationStrategy editorActivationStrategy,
 			int feature) {
 		super(viewer, editorActivationStrategy, feature);
+		this.selectionFollowsEditor = (feature & SELECTION_FOLLOWS_EDITOR) == SELECTION_FOLLOWS_EDITOR;
 		this.gridEditor = new GridEditor((Grid) viewer.getControl());
 	}
 
@@ -111,8 +119,12 @@ public class GridViewerEditor extends ColumnViewerEditor {
 				|| event.eventType == ColumnViewerEditorActivationEvent.TRAVERSAL) {
 			grid.setFocusColumn(grid.getColumn(focusCell.getColumnIndex()));
 			grid.setFocusItem((GridItem) focusCell.getItem());
+			
+			if( selectionFollowsEditor ) {
+				grid.setCellSelection(new Point(focusCell.getColumnIndex(),grid.indexOf((GridItem)focusCell.getItem())));
+			}
 		}
-		
+				
 		grid.showColumn(grid.getColumn(focusCell.getColumnIndex()));
 		grid.showItem((GridItem) focusCell.getItem()); 
 	}
