@@ -8753,6 +8753,9 @@ public class Grid extends Canvas
 
         if (columns.size() == 0)
             return;
+        
+        if(items.size() == 0)
+        	return;
 
         int index = 0;
         GridColumn column = (GridColumn)displayOrderedColumns.get(index);
