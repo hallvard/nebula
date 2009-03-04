@@ -6680,6 +6680,11 @@ public class Grid extends Canvas
         }
         else if (cellSelectionEnabled && e.button == 1 && rowHeaderVisible && e.x <= rowHeaderWidth && e.y < headerHeight)
         {
+        	// Nothing to select
+        	if(items.size() == 0) {
+        		return;
+        	}
+
             //click on the top left corner means select everything
             selectAllCells();
 
