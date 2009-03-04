@@ -5957,12 +5957,12 @@ public class Grid extends Canvas
             boolean shift = false;
             boolean ctrl = false;
 
-            if ((stateMask & SWT.SHIFT) == SWT.SHIFT)
+            if ((stateMask & SWT.MOD2) == SWT.MOD2)
             {
                 shift = true;
             }
 
-            if ((stateMask & SWT.CTRL) == SWT.CTRL)
+            if ((stateMask & SWT.MOD1) == SWT.MOD1)
             {
                 ctrl = true;
             }
@@ -6108,7 +6108,7 @@ public class Grid extends Canvas
         boolean shift = false;
         boolean ctrl = false;
 
-        if ((stateMask & SWT.SHIFT) == SWT.SHIFT)
+        if ((stateMask & SWT.MOD2) == SWT.MOD2)
         {
             shift = true;
         }
@@ -6118,7 +6118,7 @@ public class Grid extends Canvas
             shiftSelectionAnchorItem = null;
         }
 
-        if ((stateMask & SWT.CTRL) == SWT.CTRL)
+        if ((stateMask & SWT.MOD1) == SWT.MOD1)
         {
             ctrl = true;
         }
@@ -6591,7 +6591,7 @@ public class Grid extends Canvas
                         selectionEvent = updateCellSelection(new Point(indexOf(col),indexOf(item)), e.stateMask, false, true);
                         cellSelectedOnLastMouseDown = (getCellSelectionCount() > 0);
 
-                        if (e.stateMask != SWT.SHIFT)
+                        if (e.stateMask != SWT.MOD2)
                         {
                             focusColumn = col;
                             focusItem = item;
@@ -6605,11 +6605,11 @@ public class Grid extends Canvas
                         if (e.x <= rowHeaderWidth)
                         {
 
-                            boolean shift = ((e.stateMask & SWT.SHIFT) != 0);
+                            boolean shift = ((e.stateMask & SWT.MOD2) != 0);
                             boolean ctrl = false;
                             if (!shift)
                             {
-                                ctrl = ((e.stateMask & SWT.CTRL) != 0);
+                                ctrl = ((e.stateMask & SWT.MOD1) != 0);
                             }
 
                             Vector cells = new Vector();
@@ -6624,7 +6624,7 @@ public class Grid extends Canvas
                             }
 
                             int newStateMask = SWT.NONE;
-                            if (ctrl) newStateMask = SWT.CTRL;
+                            if (ctrl) newStateMask = SWT.MOD1;
 
                             selectionEvent = updateCellSelection(cells, newStateMask, shift, ctrl);
                             cellRowSelectedOnLastMouseDown = (getCellSelectionCount() > 0);
@@ -6652,12 +6652,12 @@ public class Grid extends Canvas
 
                 if (e.button == 3 && selectionType == SWT.MULTI)
                 {
-                    if ((e.stateMask & SWT.SHIFT) == SWT.SHIFT)
+                    if ((e.stateMask & SWT.MOD2) == SWT.MOD2)
                     {
                         return;
                     }
 
-                    if ((e.stateMask & SWT.CTRL) == SWT.CTRL)
+                    if ((e.stateMask & SWT.MOD1) == SWT.MOD1)
                     {
                     	return;
                     }
@@ -6933,7 +6933,7 @@ public class Grid extends Canvas
                     cellDragSelectionOccuring = true;
                     //XXX: make this user definable
                     setCursor(getDisplay().getSystemCursor(SWT.CURSOR_CROSS));
-                    cellDragCTRL = ((e.stateMask & SWT.CTRL) != 0);
+                    cellDragCTRL = ((e.stateMask & SWT.MOD1) != 0);
                     if (cellDragCTRL)
                     {
                         selectedCellsBeforeRangeSelect.clear();
@@ -6944,7 +6944,7 @@ public class Grid extends Canvas
                 {
                     cellRowDragSelectionOccuring = true;
                     setCursor(getDisplay().getSystemCursor(SWT.CURSOR_CROSS));
-                    cellDragCTRL = ((e.stateMask & SWT.CTRL) != 0);
+                    cellDragCTRL = ((e.stateMask & SWT.MOD1) != 0);
                     if (cellDragCTRL)
                     {
                         selectedCellsBeforeRangeSelect.clear();
@@ -6956,7 +6956,7 @@ public class Grid extends Canvas
                 {
                     cellColumnDragSelectionOccuring = true;
                     setCursor(getDisplay().getSystemCursor(SWT.CURSOR_CROSS));
-                    cellDragCTRL = ((e.stateMask & SWT.CTRL) != 0);
+                    cellDragCTRL = ((e.stateMask & SWT.MOD1) != 0);
                     if (cellDragCTRL)
                     {
                         selectedCellsBeforeRangeSelect.clear();
@@ -6964,7 +6964,7 @@ public class Grid extends Canvas
                     }
                 }
 
-                int ctrlFlag = (cellDragCTRL ? SWT.CTRL : SWT.NONE);
+                int ctrlFlag = (cellDragCTRL ? SWT.MOD1 : SWT.NONE);
 
                 if (cellDragSelectionOccuring && handleCellHover(e.x, e.y))
                 {
@@ -7005,7 +7005,7 @@ public class Grid extends Canvas
 
                     showColumn(intentColumn);
                     showItem(intentItem);
-                    selectionEvent = updateCellSelection(new Point(indexOf(intentColumn),indexOf(intentItem)),ctrlFlag | SWT.SHIFT, true, false);
+                    selectionEvent = updateCellSelection(new Point(indexOf(intentColumn),indexOf(intentItem)),ctrlFlag | SWT.MOD2, true, false);
                 }
                 if (cellRowDragSelectionOccuring && handleCellHover(e.x, e.y))
                 {
@@ -7252,7 +7252,7 @@ public class Grid extends Canvas
         GridItem impliedFocusItem = focusItem;
         GridColumn impliedFocusColumn = focusColumn;
 
-        if (cellSelectionEnabled && e.stateMask == SWT.SHIFT)
+        if (cellSelectionEnabled && e.stateMask == SWT.MOD2)
         {
             if (shiftSelectionAnchorColumn != null)
             {
@@ -7459,15 +7459,15 @@ public class Grid extends Canvas
 
         if (cellSelectionEnabled)
         {
-            if (e.stateMask != SWT.SHIFT)
+            if (e.stateMask != SWT.MOD2)
                 focusColumn = newColumnFocus;
             showColumn(newColumnFocus);
 
-            if (e.stateMask != SWT.SHIFT)
+            if (e.stateMask != SWT.MOD2)
                 focusItem = newSelection;
             showItem(newSelection);
 
-            if (e.stateMask != SWT.CTRL)
+            if (e.stateMask != SWT.MOD1)
             {
                 Event selEvent = updateCellSelection(new Point(indexOf(newColumnFocus),indexOf(newSelection)),e.stateMask, false, false);
                 if (selEvent != null)
@@ -7484,7 +7484,7 @@ public class Grid extends Canvas
         else
         {
             Event selectionEvent = null;
-            if (selectionType == SWT.SINGLE || e.stateMask != SWT.CTRL)
+            if (selectionType == SWT.SINGLE || e.stateMask != SWT.MOD1)
             {
                 selectionEvent = updateSelection(newSelection, e.stateMask);
                 if (selectionEvent != null)
@@ -8773,7 +8773,7 @@ public class Grid extends Canvas
         GridItem lastItem = getPreviousVisibleItem(null);
         GridColumn lastCol = getVisibleColumn_DegradeLeft(lastItem,(GridColumn)displayOrderedColumns.get(displayOrderedColumns.size() -1));
 
-        updateCellSelection(new Point(indexOf(lastCol),indexOf(lastItem)),SWT.SHIFT, true, false);
+        updateCellSelection(new Point(indexOf(lastCol),indexOf(lastItem)),SWT.MOD2, true, false);
 
         focusColumn = oldFocusColumn;
         focusItem = oldFocusItem;
