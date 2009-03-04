@@ -9,6 +9,7 @@
  *    rmcamara@us.ibm.com                       - initial API and implementation
  *    Tom Schindl <tom.schindl@bestsolution.at> - various significant contributions
  *    											  bug fix in: 191216
+ *    Jake fisher<fisherja@gmail.com>           - fixed minimum height (bug 263489)
  *******************************************************************************/
 
 package org.eclipse.nebula.jface.gridviewer;
@@ -17,14 +18,13 @@ import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerRow;
 import org.eclipse.jface.viewers.CellEditor.LayoutData;
 import org.eclipse.nebula.widgets.grid.Grid;
-import org.eclipse.nebula.widgets.grid.GridColumn;
 import org.eclipse.nebula.widgets.grid.GridEditor;
 import org.eclipse.nebula.widgets.grid.GridItem;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Item;
@@ -61,6 +61,14 @@ public class GridViewerEditor extends ColumnViewerEditor {
         gridEditor.grabHorizontal = layoutData.grabHorizontal;
         gridEditor.horizontalAlignment = layoutData.horizontalAlignment;
         gridEditor.minimumWidth = layoutData.minimumWidth;
+        
+		gridEditor.verticalAlignment = layoutData.verticalAlignment;
+
+		if (layoutData.minimumHeight != SWT.DEFAULT) {
+			gridEditor.minimumHeight = layoutData.minimumHeight;
+		} else {
+			gridEditor.minimumHeight = SWT.DEFAULT;
+		}
     }
 
     /**
