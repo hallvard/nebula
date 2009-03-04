@@ -298,7 +298,14 @@ public class GridViewerRow extends ViewerRow
 		return currentIndex < this.item.getParent().getColumnOrder().length;
 	}
 
-//	int getWidth(int columnIndex) {
-//		return item.getParent().getColumn(columnIndex).getWidth();
-//	}
+	/**
+	 * Check if the column of the cell is part of is visible
+	 * 
+	 * @param columnIndex the column index
+	 * 
+	 * @return <code>true</code> if the column is visible
+	 */
+	protected boolean isColumnVisible(int columnIndex) {
+		return item.getParent().getColumn(columnIndex).isVisible();
+	}
 }

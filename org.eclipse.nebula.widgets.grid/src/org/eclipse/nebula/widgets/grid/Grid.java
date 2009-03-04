@@ -4179,6 +4179,9 @@ public class Grid extends Canvas
         {
             RowRange range = getRowRange(newTopIndex,getVisibleGridHeight(),true,true);	// note: inverse==true
             newTopIndex = range.startIndex;		// note: use startIndex because of inverse==true
+            if( ! bottomIndexShownCompletely ) {
+            	newTopIndex++;
+            }
         }
 
         setTopIndex(newTopIndex);
