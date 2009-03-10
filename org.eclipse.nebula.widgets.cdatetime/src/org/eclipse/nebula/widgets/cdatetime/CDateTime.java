@@ -11,18 +11,17 @@
 
 package org.eclipse.nebula.widgets.cdatetime;
 
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.AttributedCharacterIterator;
 import java.text.CharacterIterator;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -70,7 +69,7 @@ import org.eclipse.swt.widgets.TypedListener;
  * </p>
  * @see CDT
  */
-public class CDateTime extends BaseCombo {
+public class CDateTime<T> extends BaseCombo {
 
 	/**
 	 * A simple class used for editing a field numerically.
@@ -176,6 +175,38 @@ public class CDateTime extends BaseCombo {
 		}
 	}
 	
+	public static CDateTime<Date> create(Composite parent, int style) {
+		return new CDateTime<Date>(parent, style, new Date());
+	}
+	
+	public static CDateTime<Timestamp> createTimestamp(Composite parent, int style) {
+		return new CDateTime<Timestamp>(parent, style, new Timestamp(System.currentTimeMillis()));
+	}
+
+	public static CDateTime<java.sql.Date> createDate(Composite parent, int style) {
+		return new CDateTime<java.sql.Date>(parent, style, new java.sql.Date(System.currentTimeMillis()));
+	}
+	
+	public static CDateTime<Time> createTime(Composite parent, int style) {
+		return new CDateTime<Time>(parent, style, new Time(System.currentTimeMillis()));
+	}
+
+	public static CDateTime<Range<Date>> createRange(Composite parent, int style) {
+		return new CDateTime<Range<Date>>(parent, style, Range.createRange());
+	}
+	
+	public static CDateTime<Range<java.sql.Date>> createDateRange(Composite parent, int style) {
+		return new CDateTime<Range<java.sql.Date>>(parent, style, Range.createDateRange());
+	}
+	
+	public static CDateTime<Range<Time>> createTimeRange(Composite parent, int style) {
+		return new CDateTime<Range<Time>>(parent, style, Range.createTimeRange());
+	}
+	
+	public static CDateTime<Range<Timestamp>> createTimestampRange(Composite parent, int style) {
+		return new CDateTime<Range<Timestamp>>(parent, style, Range.createTimestampRange());
+	}
+	
 	private static final int FIELD_NONE = -1;
 	
 	private static final int DISCARD		= 0;
@@ -211,11 +242,17 @@ public class CDateTime extends BaseCombo {
 	boolean internalFocusShift = false;
 	boolean rightClick = false;
 
-	private Date cancelDate;
 	private Calendar calendar;
+	private Class<T> selectionType;
+	private T selection = null;
+	private T holdOverSelection = null;
+
 	private DateFormat df;
 	Locale locale;
-	
+
+	private boolean defaultNullText = true;
+	private boolean singleSelection;
+
 	TimeZone timezone;
 	Field[] field;
 	int activeField;
@@ -299,14 +336,7 @@ public class CDateTime extends BaseCombo {
 	private int[] calendarFields;
 	private boolean isTime;
 	private boolean isDate;
-	//	private boolean isNull = true;
 	private String nullText = null;
-
-	private boolean defaultNullText = true;
-	private boolean singleSelection;
-	
-	//	private boolean dragSelection;
-	private Date[] selection = new Date[0];
 
 	private boolean scrollable = true;
 	
@@ -322,10 +352,18 @@ public class CDateTime extends BaseCombo {
 	 * @param style the style of widget to construct
 	 */
 	public CDateTime(Composite parent, int style) {
-		super(parent, convertStyle(style));
-		init(style);
+		this(parent, style, (T) new Date());
 	}
 
+	private CDateTime(Composite parent, int style, T selection) {
+		super(parent, convertStyle(style));
+//		TODO nullSelection var needs to be brought back for this to work (selection var can never be null)
+//		TODO need two methods: 1. getDateFromSelection(); 2. getSelectionFromDate()
+//		this.selectionType = selectionType;
+		this.selection = selection;
+		init(style);
+	}
+	
 	/**
 	 * Adds the listener to the collection of listeners who will be notified when the 
 	 * receiver's selection changes, by sending it one of the messages defined in the 
@@ -374,6 +412,17 @@ public class CDateTime extends BaseCombo {
 		text.addListener(SWT.Traverse, textListener);
 	}
 
+	private T clone(T obj) {
+		if(obj == null) {
+			return null;
+		}
+		if(obj instanceof Timestamp) {
+			return (T) ((Timestamp) obj).clone();
+		}
+		// should never get here due to T checks in constructor
+		throw new UnsupportedOperationException("don't know how to clone " + obj); //$NON-NLS-1$
+	}
+	
 	/**
 	 * If a field is being edited (via keyboard), set the edit value to the 
 	 * active field of the calendar.  Reset the count of the EditField so that a
@@ -482,7 +531,7 @@ public class CDateTime extends BaseCombo {
 		b.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		b.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				setSelection(cancelDate);
+				setSelection(holdOverSelection);
 				setOpen(false);
 			}
 		});
@@ -495,7 +544,7 @@ public class CDateTime extends BaseCombo {
 		b.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				setOpen(false);
-				deselectAll();
+				setSelection(null);
 				fireSelectionChanged();
 			}
 		});
@@ -504,21 +553,21 @@ public class CDateTime extends BaseCombo {
 		sep.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 	}
 
-	void deselect(Date date) {
-		if(date != null && isSelected(date)) {
-			Date[] tmp = new Date[selection.length - 1];
-			for(int i = 0, j = 0; i < selection.length; i++) {
-				if(!selection[i].equals(date)) {
-					tmp[j++] = selection[i];
-				}
-			}
-			setSelectedDates(tmp);
-		}
-	}
-	
-	public void deselectAll() {
-		setSelectedDates((Date[]) null);
-	}
+//	void deselect(Date date) {
+//		if(date != null && isSelected(date)) {
+//			Date[] tmp = new Date[selection.length - 1];
+//			for(int i = 0, j = 0; i < selection.length; i++) {
+//				if(!selection[i].equals(date)) {
+//					tmp[j++] = selection[i];
+//				}
+//			}
+//			setSelectedDates(tmp);
+//		}
+//	}
+//	
+//	public void deselectAll() {
+//		setSelectedDates((Date[]) null);
+//	}
 	
 	private void disposePicker() {
 		if(content != null) {
@@ -549,13 +598,26 @@ public class CDateTime extends BaseCombo {
 	 */
 	void fieldAdjust(int amount) {
 		if(!hasSelection()) {
-			setSelection(calendar.getTime());
+			updateSelection(calendar.getTimeInMillis());
+			setSelection(selection);
 			fireSelectionChanged();
 		} else {
 			int cf = getCalendarField();
 			if(cf >= 0) {
 				fieldSet(cf, calendar.get(cf) + amount, WRAP);
 			}
+		}
+	}
+	
+	private void updateSelection(long millis) {
+		if(selectionType == Date.class) {
+			selection = (T) new Date(millis);
+		} else if(selectionType == Timestamp.class) {
+			selection = (T) new Timestamp(millis);
+		} else if(selectionType == java.sql.Date.class) {
+			selection = (T) new java.sql.Date(millis);
+		} else if(selectionType == Time.class) {
+			selection = (T) new Time(millis);
 		}
 	}
 
@@ -710,7 +772,7 @@ public class CDateTime extends BaseCombo {
 				}
 			}
 			calendar.set(calendarField, value);
-			selection[0] = calendar.getTime();
+			updateSelection(calendar.getTimeInMillis());
 			updateText();
 			updatePicker();
 			fireSelectionChanged(calendarField);
@@ -732,7 +794,7 @@ public class CDateTime extends BaseCombo {
 			setOpen(false);
 		}
 		Event event = new Event();
-		event.data = getSelectedDates();
+		event.data = getSelection();
 		notifyListeners(SWT.Selection, event);
 		if(defaultSelection) {
 			notifyListeners(SWT.DefaultSelection, event);
@@ -848,12 +910,23 @@ public class CDateTime extends BaseCombo {
 		return pattern;
 	}
 
-	public Date[] getSelectedDates() {
-		return selection.clone();
+	public T getSelection() {
+		return clone(selection);
 	}
-	
-	public Date getSelection() {
-		return hasSelection() ? selection[0] : null;
+
+	<E> E getSelection(Class<E> returnType) {
+		if(selection == null) {
+			return null;
+		}
+		if(returnType.isAssignableFrom(selectionType)) {
+			return (E) selection;
+		}
+		if(returnType == Date.class) {
+			if(selectionType == Date.class) {
+				return (E) selection;
+			}
+		}
+		throw new UnsupportedOperationException("can't convert from " + selectionType.getSimpleName() + " to " + returnType.getSimpleName());
 	}
 
 	public int getStyle() {
@@ -868,22 +941,14 @@ public class CDateTime extends BaseCombo {
 		return text;
 	}
 	
-	/**
-	 * Get the <code>java.util.Date</code> that is currently active in this
-	 * CDateTime widget.<br>
-	 * Note that if a field is being edited, and has not yet been committed,
-	 * then this value may not represent what is displayed in the text box.
-	 * @return the date
-	 * @see #setSelection(Date)
-	 */
-	public Date getTime() {
-		return calendar.getTime();
-	}
-
-	public long getTimeInMillis() {
+	long getTimeInMillis() {
 		return calendar.getTimeInMillis();
 	}
 	
+	public Date getReferenceTime() {
+		return calendar.getTime();
+	}
+
 	/**
 	 * The timezone currently in use by this CDateTime.
 	 * @return the timezone
@@ -904,7 +969,7 @@ public class CDateTime extends BaseCombo {
 		}
 		if(SWT.BS == event.keyCode || SWT.DEL == event.keyCode) {
 			event.doit = false;
-			setSelection((Date) null);
+			setSelection(null);
 			fireSelectionChanged();
 		} else if(!hasField(activeField) && !hasSelection()) {
 			event.doit = false;
@@ -1017,7 +1082,7 @@ public class CDateTime extends BaseCombo {
 	 * @return true if a date is selected, false otherwise
 	 */
 	public boolean hasSelection() {
-		return selection.length > 0;
+		return selection != null;
 	}
 	
 	private void init(int style) {
@@ -1096,11 +1161,13 @@ public class CDateTime extends BaseCombo {
 	}
 
 	boolean isSelected(Date date) {
-		for(Date d : selection) {
-			if(d.equals(date)) {
-				return true;
-			}
+		if(selection == null) {
+			return false;
 		}
+		if(selection instanceof Date) {
+			return selection.equals(date);
+		}
+		// TODO types other than Date and its subclasses
 		return false;
 	}
 
@@ -1149,32 +1216,32 @@ public class CDateTime extends BaseCombo {
 		text.removeListener(SWT.Traverse, textListener);
 	}
 	
-	void select(Date date) {
-		if(date != null) {
-			Date[] tmp = new Date[selection.length + 1];
-			System.arraycopy(selection, 0, tmp, 1, selection.length);
-			tmp[0] = date;
-			setSelectedDates(tmp);
-		}
-	}
-	
-	void select(Date date1, Date date2, int field, int increment) {
-		if(date1 != null && date2 != null) {
-			Date start = date1.before(date2) ? date1 : date2;
-			Date end   = date1.before(date2) ? date2 : date1;
-			List<Date> tmp = new ArrayList<Date>();
-			Calendar cal = getCalendarInstance(start);
-			while(cal.getTime().before(end)) {
-				tmp.add(cal.getTime());
-				cal.add(field, increment);
-			}
-			tmp.add(cal.getTime());
-			if(start == date2) {
-				Collections.reverse(tmp);
-			}
-			setSelectedDates(tmp.toArray(new Date[tmp.size()]));
-		}
-	}
+//	void select(Date date) {
+//		if(date != null) {
+//			Date[] tmp = new Date[selection.length + 1];
+//			System.arraycopy(selection, 0, tmp, 1, selection.length);
+//			tmp[0] = date;
+//			setSelectedDates(tmp);
+//		}
+//	}
+//	
+//	void select(Date date1, Date date2, int field, int increment) {
+//		if(date1 != null && date2 != null) {
+//			Date start = date1.before(date2) ? date1 : date2;
+//			Date end   = date1.before(date2) ? date2 : date1;
+//			List<Date> tmp = new ArrayList<Date>();
+//			Calendar cal = getCalendarInstance(start);
+//			while(cal.getTime().before(end)) {
+//				tmp.add(cal.getTime());
+//				cal.add(field, increment);
+//			}
+//			tmp.add(cal.getTime());
+//			if(start == date2) {
+//				Collections.reverse(tmp);
+//			}
+//			setSelectedDates(tmp.toArray(new Date[tmp.size()]));
+//		}
+//	}
 	
 	/**
 	 * Sets the active field, which may or may not be a real field (it may also
@@ -1300,14 +1367,14 @@ public class CDateTime extends BaseCombo {
 
 	public void setOpen(boolean open, Runnable callback) {
 		if(open) {
-			cancelDate = getSelection();
+			holdOverSelection = getSelection();
 			createPicker();
 		} else {
-			cancelDate = null;
+			holdOverSelection = null;
 		}
 		super.setOpen(open, callback);
 		if(hasSelection()) {
-			setTime(getSelection());
+			show(getSelection());
 		}
 	}
 
@@ -1408,48 +1475,42 @@ public class CDateTime extends BaseCombo {
 		}
 	}
 
-	public void setSelectedDates(Date[] selectedDates) {
-		if(selectedDates == null) {
-			this.selection = new Date[0];
-		} else {
-			this.selection = selectedDates.clone();
-		}
-		if(singleSelection && this.selection.length > 0) {
-			setTime(selectedDates[0]);
-		} else {
-			updateText();
-			updatePicker();
-		}
-	}
-	
 	/**
 	 * Set the selection for this CDateTime to that of the provided
 	 * <code>Date</code> object.<br>
 	 * This method will update the text box and, if the <code>DROP_DOWN</code>
 	 * style is set, the selection of the associated drop down CDateTime.
 	 * @param selection the <code>Date</code> object to use for the new selection
-	 * @see #getSelectedDates()
 	 */
-	public void setSelection(Date selection) {
+	public void setSelection(T selection) {
 		if(selection == null) {
-			setSelectedDates((Date[]) null);
+			this.selection = null;
 		} else {
-			setSelectedDates(new Date[] { selection });
+			this.selection = clone(selection);
+		}
+		if(singleSelection) {
+			show(selection);
+		} else {
+			updateText();
+			updatePicker();
 		}
 	}
 
-	public void setSelectionMode(int selectionMode) {
-		// TODO implement setSelectionMode
-	}
-	
-	public void setTime(Date date) {
-		if(date == null) {
+	public void show(T reference) {
+		if(reference == null) {
 			calendar.setTime(new Date());
 		} else {
-			calendar.setTime(date);
+			if(reference instanceof Date) {
+				calendar.setTimeInMillis(((Date) reference).getTime());
+			}
+			// TODO types other than Date and subclasses
 		}
 		updateText();
 		updatePicker();
+	}
+
+	public void showSelection() {
+		show(selection);
 	}
 	
 	public void setTimeZone(String zoneID) {
@@ -1468,7 +1529,7 @@ public class CDateTime extends BaseCombo {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " {" + getTime() + "}"; //$NON-NLS-1$  //$NON-NLS-2$
+		return getClass().getSimpleName() + " {" + getReferenceTime() + "}"; //$NON-NLS-1$  //$NON-NLS-2$
 	}
 	
 	/**
@@ -1659,15 +1720,16 @@ public class CDateTime extends BaseCombo {
 						fieldNext();
 					} else {
 						editField = null;
-						selection[0] = calendar.getTime();
+						updateSelection(calendar.getTimeInMillis());
 						updateText();
 					}
 				}
-				selection[0] = calendar.getTime();
+				updateSelection(calendar.getTimeInMillis());
 				updatePicker();
 			} else {
 				try {
-					setSelection(df.parse(e.text));
+					updateSelection(df.parse(e.text).getTime());
+					setSelection(selection);
 					fireSelectionChanged();
 				} catch (ParseException pe) {
 					// do nothing

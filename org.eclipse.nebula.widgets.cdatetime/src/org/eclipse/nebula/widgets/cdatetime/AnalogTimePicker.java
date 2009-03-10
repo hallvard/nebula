@@ -467,7 +467,7 @@ class AnalogTimePicker extends VPanel {
 		}
 		if(timeAmPm != null) {
 			SimpleDateFormat sdf = new SimpleDateFormat("a"); //$NON-NLS-1$
-			timeAmPm.setText(sdf.format(cdt.getTime()));
+			timeAmPm.setText(sdf.format(cdt.getReferenceTime()));
 		}
 		dialPanel.redraw();
 		dialPanel.update();
