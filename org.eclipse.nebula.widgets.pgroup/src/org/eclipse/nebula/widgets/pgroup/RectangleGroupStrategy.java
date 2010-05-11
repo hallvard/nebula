@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2006 Chris Gross. All rights reserved. This program and the
+ * Copyright (c) 2006 Chris Gross.
+ * All rights reserved. This program and the
  * accompanying materials are made available under the terms of the Eclipse
  * Public License v1.0 which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html Contributors: schtoo@schtoo.com
- * (Chris Gross) - initial API and implementation
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * 		schtoo@schtoo.com (Chris Gross) - initial API and implementation
+ * 		Tom Schindl <tom.schindl@bestsolution.at> - added support for PGroupToolItem
  ******************************************************************************/
 
 package org.eclipse.nebula.widgets.pgroup;
@@ -353,38 +357,20 @@ public class RectangleGroupStrategy extends AbstractGroupStrategy
 
         if( getGroup().getToolItems().size() > 0 && getGroup().getToolItemRenderer() != null ) {
         	Iterator it = getGroup().getToolItems().iterator();
+        	AbstractToolItemRenderer renderer = getGroup().getToolItemRenderer();
 
         	Point size = new Point(0, 0);
         	Point minSize = new Point(0, 0);
 
         	int spacing = 3;
-        	int padding = 2;
 
         	while( it.hasNext() ) {
         		PGroupToolItem i = (PGroupToolItem) it.next();
-        		int dropDown = (i.getStyle() & SWT.DROP_DOWN) != 0 ? 10 : 0;
+        		Point[] sizes = renderer.calculateSizes(gc, i);
 
-        		if( i.getText().length() > 0 && i.getImage() != null ) {
-        			Point p = gc.textExtent(i.getText());
-        			int x1 = p.x + i.getImage().getImageData().width + padding * 3 + dropDown;
-        			int x2 = i.getImage().getImageData().width + padding * 2 + dropDown;
-        			int y = p.y;
-        			size.x += x1 + spacing;
-        			minSize.x += x2 + spacing;
-        			i.setData(new int[] { x1, x2, y });
-        		} else if( i.getText().length() > 0 ) {
-        			Point p = gc.textExtent(i.getText());
-        			int x = p.x + padding * 2 + dropDown;
-        			int y = p.y;
-        			size.x += x + spacing;
-        			minSize.x += x + spacing;
-        			i.setData(new int[] { x, x, y });
-        		} else if( i.getImage() != null ) {
-        			int x = i.getImage().getImageData().width + padding * 2 + dropDown;
-        			size.x += x + spacing;
-        			minSize.x += x + spacing;
-        			i.setData(new int[] { x, x, 0 });
-        		}
+        		size.x += sizes[0].x + spacing;
+    			minSize.x += sizes[1].x + spacing;
+    			i.setSizes(sizes);
         	}
 
         	boolean min = false;
@@ -406,25 +392,30 @@ public class RectangleGroupStrategy extends AbstractGroupStrategy
         	int x = textBounds.x + textBounds.width;
         	it = getGroup().getToolItems().iterator();
 
-        	AbstractRenderer toolitemRenderer = getGroup().getToolItemRenderer();
+        	AbstractToolItemRenderer toolitemRenderer = getGroup().getToolItemRenderer();
         	PGroupToolItem currentItem = getGroup().getActiveToolItem();
 
         	while( it.hasNext() ) {
         		PGroupToolItem item = (PGroupToolItem) it.next();
 
-        		int[] sizes = (int[]) item.getData();
+        		Point[] sizes = item.getSizes();
 
         		if( min ) {
-        			Rectangle rect = new Rectangle(x, 2, sizes[1], titleHeight - 4);
+        			Rectangle rect = new Rectangle(x, 2, sizes[1].x, titleHeight - 4);
         			item.setBounds(rect);
         			toolitemRenderer.setBounds(rect);
-        			x += sizes[1] + spacing;
+        			x += sizes[1].x + spacing;
         		} else {
-        			Rectangle rect = new Rectangle(x, 2, sizes[0], titleHeight - 4);
+        			Rectangle rect = new Rectangle(x, 2, sizes[0].x, titleHeight - 4);
         			item.setBounds(rect);
         			toolitemRenderer.setBounds(rect);
-        			x += sizes[0] + spacing;
+        			x += sizes[0].x + spacing;
         		}
+
+        		if( (item.getStyle() & SWT.DROP_DOWN) != 0 ) {
+        			item.setDropDownArea(toolitemRenderer.calcDropDownArea(item.getBounds()));
+        		}
+
         		toolitemRenderer.setHover(currentItem == item);
         		toolitemRenderer.paint(gc, new Object[] { item, Boolean.valueOf(min) });
         	}
