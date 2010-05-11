@@ -342,7 +342,6 @@ public class PGroup extends Canvas
         	Iterator it = toolitems.iterator();
 
         	AbstractToolItemRenderer toolitemRenderer = getToolItemRenderer();
-        	PGroupToolItem currentItem = getActiveToolItem();
 
         	Point[] sizes = new Point[toolitems.size()];
         	boolean min = false;
@@ -387,7 +386,7 @@ public class PGroup extends Canvas
         			item.setDropDownArea(toolitemRenderer.calculateDropDownArea(item.getBounds()));
         		}
 
-        		toolitemRenderer.setHover(currentItem == item);
+        		toolitemRenderer.setHover(activeToolItem == item);
         		toolitemRenderer.paint(gc, item);
         	}
     	}
@@ -880,13 +879,9 @@ public class PGroup extends Canvas
         redraw();
     }
 
-	PGroupToolItem[] getToolItems() {
+	public PGroupToolItem[] getToolItems() {
 		PGroupToolItem[] rv = new PGroupToolItem[toolitems.size()];
 		toolitems.toArray(rv);
 		return rv;
-	}
-
-	PGroupToolItem getActiveToolItem() {
-		return activeToolItem;
 	}
 }
