@@ -7,9 +7,13 @@
  *
  * Contributors:
  *    schtoo@schtoo.com (Chris Gross) - initial API and implementation
- *******************************************************************************/ 
+ *******************************************************************************/
 
 package org.eclipse.nebula.widgets.pgroup;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -32,11 +36,11 @@ import org.eclipse.swt.widgets.TypedListener;
 import org.eclipse.swt.widgets.Widget;
 
 /**
- * Instances of this class provide a decorated border as well as an optional toggle to expand and 
+ * Instances of this class provide a decorated border as well as an optional toggle to expand and
  * collapse the control.
  * <p>
- * This widget is customizable through alternative <code>AbstractGroupStrategy</code>s. Each 
- * strategy determines the size and appearance of the widget.  
+ * This widget is customizable through alternative <code>AbstractGroupStrategy</code>s. Each
+ * strategy determines the size and appearance of the widget.
  * <p>
  * <dl>
  * <dt><b>Styles:</b></dt>
@@ -44,7 +48,7 @@ import org.eclipse.swt.widgets.Widget;
  * <dt><b>Events:</b></dt>
  * <dd>Expand, Collapse</dd>
  * </dl>
- * 
+ *
  * @author cgross
  */
 public class PGroup extends Canvas
@@ -57,7 +61,7 @@ public class PGroup extends Canvas
     private String text = "";
 
     private Font initialFont;
-    
+
     private int imagePosition = SWT.LEAD;
 
     private int togglePosition = SWT.TRAIL;
@@ -67,24 +71,30 @@ public class PGroup extends Canvas
     private boolean expanded = true;
 
     private boolean overToggle = false;
-    
+
     private AbstractRenderer toggleRenderer;
-    
+
+    private AbstractRenderer toolItemRenderer;
+
     private Color backgroundColor;
+
+    private List toolitems = new ArrayList();
+
+    private PGroupToolItem activeToolItem;
 
     private static int checkStyle(int style)
     {
         int mask = SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT | SWT.SMOOTH;
         return (style & mask) | SWT.DOUBLE_BUFFERED;
     }
-    
+
     /**
      * Constructs a new instance of this class given its parent
      * and a style value describing its behavior and appearance.
      * <p>
      * The style value is either one of the style constants defined in
      * class <code>SWT</code> which is applicable to instances of this
-     * class, or must be built by <em>bitwise OR</em>'ing together 
+     * class, or must be built by <em>bitwise OR</em>'ing together
      * (that is, using the <code>int</code> "|" operator) two or more
      * of those <code>SWT</code> style constants. The class description
      * lists the style constants that are applicable to the class.
@@ -115,6 +125,7 @@ public class PGroup extends Canvas
         super(parent, checkStyle(style));
         setStrategy(new RectangleGroupStrategy());
         setToggleRenderer(new ChevronsToggleRenderer());
+        setToolItemRenderer(new SimpleToolItemRenderer());
 
         initialFont = new Font(getDisplay(), getFont().getFontData()[0].getName(), getFont()
             .getFontData()[0].getHeight(), SWT.BOLD);
@@ -125,7 +136,7 @@ public class PGroup extends Canvas
         initListeners();
     }
 
-    /** 
+    /**
      * {@inheritDoc}
      */
     public Color getBackground()
@@ -135,7 +146,7 @@ public class PGroup extends Canvas
             return super.getBackground();
         return backgroundColor;
     }
-    
+
     Color internalGetBackground()
     {
         return backgroundColor;
@@ -161,7 +172,7 @@ public class PGroup extends Canvas
      * @param color the new color (or null)
      *
      * @exception IllegalArgumentException <ul>
-     *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li> 
+     *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li>
      * </ul>
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -174,10 +185,10 @@ public class PGroup extends Canvas
         backgroundColor = color;
         redraw();
     }
-    
+
     /**
      * Returns the toggle renderer or <code>null</code>.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -192,11 +203,11 @@ public class PGroup extends Canvas
 
 
     /**
-     * Sets the toggle renderer.  If the toggle renderer is set to <code>null</code> the control 
+     * Sets the toggle renderer.  If the toggle renderer is set to <code>null</code> the control
      * will not show a toggle or allow the user to expand/collapse the group by clicking on the title.
-     * 
+     *
      * @param toggleRenderer the toggleRenderer to set or <code>null</code>
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -221,7 +232,7 @@ public class PGroup extends Canvas
                 onDispose();
             }
         });
-        
+
         addPaintListener(new PaintListener()
         {
             public void paintControl(PaintEvent e)
@@ -297,17 +308,17 @@ public class PGroup extends Canvas
         });
 
     }
-    
+
     private void onPaint(PaintEvent e)
     {
         Color back = e.gc.getBackground();
         Color fore = e.gc.getForeground();
 
         strategy.paint(e.gc);
-        
+
         e.gc.setBackground(back);
         e.gc.setForeground(fore);
-        
+
         if (toggleRenderer != null)
         {
             toggleRenderer.setExpanded(expanded);
@@ -329,13 +340,14 @@ public class PGroup extends Canvas
             else
             {
                 notifyListeners(SWT.Collapse, new Event());
-            }            
+            }
         }
     }
-    
+
     private void onMouseMove(Event e)
     {
         boolean newOverToggle = PGroup.this.strategy.isToggleLocation(e.x, e.y);
+        boolean redraw = false;
         if (newOverToggle != overToggle)
         {
             if (newOverToggle)
@@ -347,17 +359,40 @@ public class PGroup extends Canvas
                 setCursor(null);
             }
             overToggle = newOverToggle;
-            redraw();
+            redraw = true;
+        }
+
+        if( toolitems.size() > 0 ) {
+        	Iterator it = toolitems.iterator();
+        	PGroupToolItem newItem = null;
+
+        	while( it.hasNext() ) {
+        		PGroupToolItem item = (PGroupToolItem) it.next();
+
+        		if( item.getBounds().contains(e.x, e.y) ) {
+        			newItem = item;
+        			break;
+        		}
+        	}
+
+        	if( newItem != activeToolItem ) {
+        		activeToolItem = newItem;
+        		redraw = true;
+        	}
+        }
+
+        if( redraw ) {
+        	redraw();
         }
     }
-    
+
     private void onMouseExit(Event e)
     {
         setCursor(null);
         overToggle = false;
         redraw();
     }
-    
+
     private void onMouseDown(Event e)
     {
         if (overToggle && e.button == 1)
@@ -371,13 +406,17 @@ public class PGroup extends Canvas
             else
             {
                 notifyListeners(SWT.Collapse, new Event());
-            } 
+            }
+        }
+        else if( activeToolItem != null )
+        {
+        	activeToolItem.onMouseDown(e);
         }
     }
-    
+
     /**
      * Returns the strategy.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -391,9 +430,9 @@ public class PGroup extends Canvas
 
     /**
      * Sets the strategy.
-     * 
+     *
      * @param strategy the strategy to set
-     * 
+     *
      * @exception IllegalArgumentException <ul>
      *    <li>ERROR_NULL_ARGUMENT - if the strategy is null</li>
      * </ul>
@@ -414,7 +453,7 @@ public class PGroup extends Canvas
 
     /**
      * Returns the image.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -428,7 +467,7 @@ public class PGroup extends Canvas
 
     /**
      * Sets the image.
-     * 
+     *
      * @exception IllegalArgumentException <ul>
      *    <li>ERROR_NULL_ARGUMENT - if the image is disposed</li>
      * </ul>
@@ -449,7 +488,7 @@ public class PGroup extends Canvas
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.swt.widgets.Control#setFont(org.eclipse.swt.graphics.Font)
      */
     public void setFont(Font font)
@@ -462,7 +501,7 @@ public class PGroup extends Canvas
 
     /**
      * Returns the text.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -476,7 +515,7 @@ public class PGroup extends Canvas
 
     /**
      * Sets the text.
-     * 
+     *
      * @exception IllegalArgumentException <ul>
      *    <li>ERROR_NULL_ARGUMENT - if the text is null</li>
      * </ul>
@@ -497,7 +536,7 @@ public class PGroup extends Canvas
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.swt.widgets.Control#computeSize(int, int, boolean)
      */
     public Point computeSize(int arg0, int arg1, boolean arg2)
@@ -513,11 +552,11 @@ public class PGroup extends Canvas
 
     /**
      * Returns the expanded/collapsed state.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
-     * </ul>     
+     * </ul>
      **/
     public boolean getExpanded()
     {
@@ -527,7 +566,7 @@ public class PGroup extends Canvas
 
     /**
      * Sets the expanded state of the group.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -611,9 +650,9 @@ public class PGroup extends Canvas
     }
 
     /**
-     * Returns the image position.  The image position is a combination of integer constants OR'ed 
+     * Returns the image position.  The image position is a combination of integer constants OR'ed
      * together.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -626,10 +665,10 @@ public class PGroup extends Canvas
     }
 
     /**
-     * Sets the image position.  The image position is a combination of integer constants OR'ed 
-     * together.  Valid values are <code>SWT.LEFT</code> and <code>SWT.RIGHT</code> (mutually exclusive).  
+     * Sets the image position.  The image position is a combination of integer constants OR'ed
+     * together.  Valid values are <code>SWT.LEFT</code> and <code>SWT.RIGHT</code> (mutually exclusive).
      * <code>SWT.TOP</code> is hint interpreted by some strategies.
-     *   
+     *
      * @exception IllegalArgumentException <ul>
      *    <li>ERROR_NULL_ARGUMENT - if the strategy is null</li>
      * </ul>
@@ -647,9 +686,9 @@ public class PGroup extends Canvas
     }
 
     /**
-     * Returns the toggle position.  The toggle position is a combination of integer constants OR'ed 
+     * Returns the toggle position.  The toggle position is a combination of integer constants OR'ed
      * together.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -662,9 +701,9 @@ public class PGroup extends Canvas
     }
 
     /**
-     * Sets the toggle position.  The toggle position is a combination of integer constants OR'ed 
-     * together.  Valid values are <code>SWT.LEFT</code> and <code>SWT.RIGHT</code> (mutually exclusive).  
-     *   
+     * Sets the toggle position.  The toggle position is a combination of integer constants OR'ed
+     * together.  Valid values are <code>SWT.LEFT</code> and <code>SWT.RIGHT</code> (mutually exclusive).
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -679,9 +718,9 @@ public class PGroup extends Canvas
     }
 
     /**
-     * Returns the line position.  The line position is a combination of integer constants OR'ed 
+     * Returns the line position.  The line position is a combination of integer constants OR'ed
      * together.
-     * 
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -694,9 +733,9 @@ public class PGroup extends Canvas
     }
 
     /**
-     * Sets the line position.  The line position is a combination of integer constants OR'ed 
-     * together.  Valid values are <code>SWT.BOTTOM</code> and <code>SWT.CENTER</code> (mutually exclusive).  
-     *   
+     * Sets the line position.  The line position is a combination of integer constants OR'ed
+     * together.  Valid values are <code>SWT.BOTTOM</code> and <code>SWT.CENTER</code> (mutually exclusive).
+     *
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
      *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -745,7 +784,7 @@ public class PGroup extends Canvas
      * @param color the new color (or null)
      *
      * @exception IllegalArgumentException <ul>
-     *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li> 
+     *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li>
      * </ul>
      * @exception SWTException <ul>
      *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -756,4 +795,31 @@ public class PGroup extends Canvas
 		super.setForeground(color);
 	}
 
+	void addToolItem(PGroupToolItem toolitem) {
+		toolitems.add(toolitem);
+	}
+
+	void removeToolItem(PGroupToolItem toolitem) {
+		toolitems.remove(toolitem);
+	}
+
+	AbstractRenderer getToolItemRenderer() {
+		return toolItemRenderer;
+	}
+
+	public void setToolItemRenderer(AbstractRenderer toolItemRenderer)
+    {
+        checkWidget();
+        this.toolItemRenderer = toolItemRenderer;
+        strategy.update();
+        redraw();
+    }
+
+	List getToolItems() {
+		return toolitems;
+	}
+
+	PGroupToolItem getActiveToolItem() {
+		return activeToolItem;
+	}
 }
