@@ -8,8 +8,6 @@
 
 package org.eclipse.nebula.widgets.pgroup;
 
-import java.util.Iterator;
-
 import org.eclipse.nebula.widgets.pgroup.internal.GraphicUtils;
 import org.eclipse.nebula.widgets.pgroup.internal.TextUtils;
 import org.eclipse.swt.SWT;
@@ -53,6 +51,8 @@ public class FormGroupStrategy extends AbstractGroupStrategy
     private int textWidth;
 
     private int fontHeight;
+
+    private Rectangle toolItemArea;
 
     /*
      * (non-Javadoc)
@@ -232,8 +232,8 @@ public class FormGroupStrategy extends AbstractGroupStrategy
         Rectangle textBounds = getTextBounds();
         String shortened = TextUtils.getShortString(gc, getGroup().getText(), textBounds.width);
 
-        if( getGroup().getToolItems().size() > 0 && getGroup().getToolItemRenderer() != null ) {
-        	Iterator it = getGroup().getToolItems().iterator();
+        if( getGroup().getToolItems().length > 0 && getGroup().getToolItemRenderer() != null ) {
+        	PGroupToolItem[] items = getGroup().getToolItems();
         	AbstractToolItemRenderer renderer = getGroup().getToolItemRenderer();
 
         	Point size = new Point(0, 0);
@@ -241,13 +241,13 @@ public class FormGroupStrategy extends AbstractGroupStrategy
 
         	int spacing = 3;
 
-        	while( it.hasNext() ) {
-        		PGroupToolItem i = (PGroupToolItem) it.next();
-        		Point[] sizes = renderer.calculateSizes(gc, i);
+        	for(int i = 0; i < items.length; i++ ) {
+        		PGroupToolItem item = items[i];
+        		Point s0 = renderer.calculateSize(gc, item, AbstractToolItemRenderer.DEFAULT);
+        		Point s1 = renderer.calculateSize(gc, item, AbstractToolItemRenderer.MIN);
 
-        		size.x += sizes[0].x + spacing;
-    			minSize.x += sizes[1].x + spacing;
-    			i.setSizes(sizes);
+        		size.x += s0.x + spacing;
+    			minSize.x += s1.x + spacing;
         	}
 
         	boolean min = false;
@@ -267,40 +267,21 @@ public class FormGroupStrategy extends AbstractGroupStrategy
         	shortened = TextUtils.getShortString(gc, getGroup().getText(), textBounds.width);
 
         	int x = textBounds.x + textBounds.width;
-        	it = getGroup().getToolItems().iterator();
 
-        	AbstractToolItemRenderer toolitemRenderer = getGroup().getToolItemRenderer();
-        	PGroupToolItem currentItem = getGroup().getActiveToolItem();
-
-        	while( it.hasNext() ) {
-        		PGroupToolItem item = (PGroupToolItem) it.next();
-
-        		Point[] sizes = item.getSizes();
-
-        		if( min ) {
-        			Rectangle rect = new Rectangle(x, 2, sizes[1].x, titleHeight - 4);
-        			item.setBounds(rect);
-        			toolitemRenderer.setBounds(rect);
-        			x += sizes[1].x + spacing;
-        		} else {
-        			Rectangle rect = new Rectangle(x, 2, sizes[0].x, titleHeight - 4);
-        			item.setBounds(rect);
-        			toolitemRenderer.setBounds(rect);
-        			x += sizes[0].x + spacing;
-        		}
-
-        		if( (item.getStyle() & SWT.DROP_DOWN) != 0 ) {
-        			item.setDropDownArea(toolitemRenderer.calcDropDownArea(item.getBounds()));
-        		}
-
-        		toolitemRenderer.setHover(currentItem == item);
-        		toolitemRenderer.paint(gc, new Object[] { item, Boolean.valueOf(min) });
+        	if( min ) {
+        		toolItemArea = new Rectangle(x, 2, minSize.x, titleHeight - 4);
+        	} else {
+        		toolItemArea = new Rectangle(x, 2, size.x, titleHeight - 4);
         	}
         }
 
         gc.drawText(TextUtils.getShortString(gc, getGroup().getText(), textBounds.width),
                     textBounds.x, textBounds.y, true);
 
+    }
+
+    public Rectangle getToolItemArea() {
+    	return toolItemArea;
     }
 
     /**

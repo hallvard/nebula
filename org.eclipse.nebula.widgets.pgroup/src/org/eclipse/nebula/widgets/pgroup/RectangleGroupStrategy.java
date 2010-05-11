@@ -12,8 +12,6 @@
 
 package org.eclipse.nebula.widgets.pgroup;
 
-import java.util.Iterator;
-
 import org.eclipse.nebula.widgets.pgroup.internal.GraphicUtils;
 import org.eclipse.nebula.widgets.pgroup.internal.TextUtils;
 import org.eclipse.swt.SWT;
@@ -61,6 +59,8 @@ public class RectangleGroupStrategy extends AbstractGroupStrategy
     private int fontHeight;
 
     private int titleAreaHeight;
+
+    private Rectangle toolItemArea;
 
     /**
      * Constructs a RectangleGroupStrategy with the given toggle and style.
@@ -355,8 +355,8 @@ public class RectangleGroupStrategy extends AbstractGroupStrategy
         Rectangle textBounds = getTextBounds();
         String shortened = TextUtils.getShortString(gc, getGroup().getText(), textBounds.width);
 
-        if( getGroup().getToolItems().size() > 0 && getGroup().getToolItemRenderer() != null ) {
-        	Iterator it = getGroup().getToolItems().iterator();
+        if( getGroup().getToolItems().length > 0 && getGroup().getToolItemRenderer() != null ) {
+        	PGroupToolItem[] items = getGroup().getToolItems();
         	AbstractToolItemRenderer renderer = getGroup().getToolItemRenderer();
 
         	Point size = new Point(0, 0);
@@ -364,13 +364,13 @@ public class RectangleGroupStrategy extends AbstractGroupStrategy
 
         	int spacing = 3;
 
-        	while( it.hasNext() ) {
-        		PGroupToolItem i = (PGroupToolItem) it.next();
-        		Point[] sizes = renderer.calculateSizes(gc, i);
+        	for(int i = 0; i < items.length; i++ ) {
+        		PGroupToolItem item = items[i];
+        		Point s0 = renderer.calculateSize(gc, item, AbstractToolItemRenderer.DEFAULT);
+        		Point s1 = renderer.calculateSize(gc, item, AbstractToolItemRenderer.MIN);
 
-        		size.x += sizes[0].x + spacing;
-    			minSize.x += sizes[1].x + spacing;
-    			i.setSizes(sizes);
+        		size.x += s0.x + spacing;
+    			minSize.x += s1.x + spacing;
         	}
 
         	boolean min = false;
@@ -390,34 +390,11 @@ public class RectangleGroupStrategy extends AbstractGroupStrategy
         	shortened = TextUtils.getShortString(gc, getGroup().getText(), textBounds.width);
 
         	int x = textBounds.x + textBounds.width;
-        	it = getGroup().getToolItems().iterator();
 
-        	AbstractToolItemRenderer toolitemRenderer = getGroup().getToolItemRenderer();
-        	PGroupToolItem currentItem = getGroup().getActiveToolItem();
-
-        	while( it.hasNext() ) {
-        		PGroupToolItem item = (PGroupToolItem) it.next();
-
-        		Point[] sizes = item.getSizes();
-
-        		if( min ) {
-        			Rectangle rect = new Rectangle(x, titleHeight - titleAreaHeight+2, sizes[1].x, Math.max(titleAreaHeight, toggleHeight)-4);
-        			item.setBounds(rect);
-        			toolitemRenderer.setBounds(rect);
-        			x += sizes[1].x + spacing;
-        		} else {
-        			Rectangle rect = new Rectangle(x, titleHeight - titleAreaHeight+2, sizes[0].x, Math.max(titleAreaHeight, toggleHeight)-4);
-        			item.setBounds(rect);
-        			toolitemRenderer.setBounds(rect);
-        			x += sizes[0].x + spacing;
-        		}
-
-        		if( (item.getStyle() & SWT.DROP_DOWN) != 0 ) {
-        			item.setDropDownArea(toolitemRenderer.calcDropDownArea(item.getBounds()));
-        		}
-
-        		toolitemRenderer.setHover(currentItem == item);
-        		toolitemRenderer.paint(gc, new Object[] { item, Boolean.valueOf(min) });
+        	if( min ) {
+        		toolItemArea = new Rectangle(x, titleHeight - titleAreaHeight + 2, minSize.x, Math.max(titleAreaHeight, toggleHeight)-4);
+        	} else {
+        		toolItemArea = new Rectangle(x, titleHeight - titleAreaHeight + 2, size.x, Math.max(titleAreaHeight, toggleHeight)-4);
         	}
         }
 
@@ -489,12 +466,16 @@ public class RectangleGroupStrategy extends AbstractGroupStrategy
 
     }
 
+    public Rectangle getToolItemArea() {
+    	return toolItemArea;
+    }
+
     /**
      * {@inheritDoc}
      */
     public boolean isToggleLocation(int x, int y)
     {
-    	if( getGroup().getToolItems().size() == 0 ) {
+    	if( getGroup().getToolItems().length == 0 ) {
             if (y >= titleHeight - titleAreaHeight && y <= titleHeight) {
                 return true;
             } else {

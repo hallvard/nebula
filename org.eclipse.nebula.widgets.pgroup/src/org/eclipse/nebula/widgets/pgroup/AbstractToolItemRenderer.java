@@ -14,15 +14,25 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
+/**
+ * Base implementation for rendering ToolItems in the header
+ */
 public abstract class AbstractToolItemRenderer extends AbstractRenderer {
+	private boolean min;
 
-	public final void paint(GC gc, Object value) {
-		Object[] tmp = (Object[]) value;
-		doPaint(gc, (PGroupToolItem)tmp[0], ((Boolean)tmp[1]).booleanValue());
+	public static final int DEFAULT = 1;
+	public static final int MIN     = 2;
+
+	public void setMin(boolean min) {
+		this.min = min;
 	}
 
-	protected abstract void doPaint(GC gc, PGroupToolItem item, boolean min);
+	public boolean isMin() {
+		return min;
+	}
 
-	public abstract Point[] calculateSizes(GC gc, PGroupToolItem item);
-	public abstract Rectangle calcDropDownArea(Rectangle totalRect);
+	public abstract void paint(GC gc, Object value);
+
+	public abstract Point calculateSize(GC gc, PGroupToolItem item, int type);
+	public abstract Rectangle calculateDropDownArea(Rectangle totalRect);
 }

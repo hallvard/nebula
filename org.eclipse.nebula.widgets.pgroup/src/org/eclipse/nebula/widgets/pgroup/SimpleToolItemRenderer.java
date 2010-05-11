@@ -20,7 +20,9 @@ public class SimpleToolItemRenderer extends AbstractToolItemRenderer {
 	private int padding = 2;
 	private int dropDownWidth = 10;
 
-	protected void doPaint(GC gc, PGroupToolItem item, boolean min) {
+	public void paint(GC gc, Object value) {
+		PGroupToolItem item = (PGroupToolItem) value;
+
 		Rectangle rect = getBounds();
 		int alpha = gc.getAlpha();
 		Color bg = gc.getBackground();
@@ -34,7 +36,7 @@ public class SimpleToolItemRenderer extends AbstractToolItemRenderer {
 		}
 
 		if (item.getText().length() > 0 && item.getImage() != null
-				&& ! min) {
+				&& ! isMin()) {
 			gc.drawImage(item.getImage(), rect.x + padding, rect.y + padding + (int)(rect.height / 2.0 - item.getImage().getImageData().height / 2.0));
 			Point p = gc.textExtent(item.getText());
 			gc.drawString(item.getText(), rect.x + padding + item.getImage().getImageData().width + 2, rect.y + (int)(rect.height / 2.0 - p.y / 2.0), true);
@@ -54,33 +56,32 @@ public class SimpleToolItemRenderer extends AbstractToolItemRenderer {
 		gc.setBackground(bg);
 	}
 
-	public Point[] calculateSizes(GC gc, PGroupToolItem item) {
-		Point[] points = new Point[2];
-
+	public Point calculateSize(GC gc, PGroupToolItem item, int type) {
 		int dropDown = (item.getStyle() & SWT.DROP_DOWN) != 0 ? dropDownWidth : 0;
 
 		if( item.getText().length() > 0 && item.getImage() != null ) {
 			Point p = gc.textExtent(item.getText());
 			int y = p.y;
-			points[0] = new Point(p.x + item.getImage().getImageData().width + padding * 3 + dropDown, y);
-			points[1] = new Point(item.getImage().getImageData().width + padding * 2 + dropDown, y);
+			if( type == DEFAULT ) {
+				return new Point(p.x + item.getImage().getImageData().width + padding * 3 + dropDown, y);
+			} else {
+				return new Point(item.getImage().getImageData().width + padding * 2 + dropDown, y);
+			}
 		} else if( item.getText().length() > 0 ) {
 			Point p = gc.textExtent(item.getText());
 			int x = p.x + padding * 2 + dropDown;
 			int y = p.y;
-			points[0] = new Point(x, y);
-			points[1] = points[0];
+			return new Point(x, y);
 		} else if( item.getImage() != null ) {
 			int x = item.getImage().getImageData().width + padding * 2 + dropDown;
 			int y = item.getImage().getImageData().height;
-			points[0] = new Point(x, y);
-			points[1] = points[0];
+			return new Point(x, y);
 		}
 
-		return points;
+		return null;
 	}
 
-	public Rectangle calcDropDownArea(Rectangle totalRect) {
+	public Rectangle calculateDropDownArea(Rectangle totalRect) {
 		return new Rectangle(totalRect.x + totalRect.width - dropDownWidth, totalRect.y, totalRect.width, totalRect.height);
 	}
 }

@@ -12,7 +12,6 @@ package org.eclipse.nebula.widgets.pgroup;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Item;
@@ -21,7 +20,6 @@ import org.eclipse.swt.widgets.TypedListener;
 public class PGroupToolItem extends Item {
 	private Rectangle bounds;
 	private boolean selection;
-	private Point[] sizes;
 	private Rectangle dropdownArea;
 
 	public PGroupToolItem(PGroup parent, int style) {
@@ -56,13 +54,6 @@ public class PGroupToolItem extends Item {
 		removeListener(SWT.DefaultSelection,listener);
 	}
 
-	void setSizes(Point[] sizes) {
-		this.sizes = sizes;
-	}
-
-	Point[] getSizes() {
-		return sizes;
-	}
 
 	void setDropDownArea(Rectangle dropdownArea) {
 		this.dropdownArea = dropdownArea;

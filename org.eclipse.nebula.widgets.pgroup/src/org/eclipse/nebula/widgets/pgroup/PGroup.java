@@ -25,6 +25,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -327,6 +328,69 @@ public class PGroup extends Canvas
             toggleRenderer.setHover(overToggle);
             toggleRenderer.paint(e.gc, this);
         }
+
+        if( toolItemRenderer != null && toolitems.size() > 0 ) {
+        	paintToolItems(e.gc);
+        }
+    }
+
+    private void paintToolItems(GC gc) {
+    	Rectangle itemArea = strategy.getToolItemArea();
+    	if( itemArea != null ) {
+    		int spacing = 3;
+
+        	Iterator it = toolitems.iterator();
+
+        	AbstractToolItemRenderer toolitemRenderer = getToolItemRenderer();
+        	PGroupToolItem currentItem = getActiveToolItem();
+
+        	Point[] sizes = new Point[toolitems.size()];
+        	boolean min = false;
+        	int width = 0;
+        	int i = 0;
+        	while( it.hasNext() ) {
+        		PGroupToolItem item = (PGroupToolItem) it.next();
+        		Point p = toolitemRenderer.calculateSize(gc, item, AbstractToolItemRenderer.DEFAULT);
+        		sizes[i++] = p;
+        		if( width + spacing + p.x > itemArea.width ) {
+        			min = true;
+        			break;
+        		} else {
+        			width += p.x + spacing;
+        		}
+        	}
+
+        	toolitemRenderer.setMin(min);
+        	if( min ) {
+        		it = toolitems.iterator();
+        		i = 0;
+        		while( it.hasNext() ) {
+            		PGroupToolItem item = (PGroupToolItem) it.next();
+            		sizes[i++] = toolitemRenderer.calculateSize(gc, item, AbstractToolItemRenderer.MIN);
+        		}
+        	}
+
+        	it = toolitems.iterator();
+
+        	int x = itemArea.x;
+        	i = 0;
+        	while( it.hasNext() ) {
+        		PGroupToolItem item = (PGroupToolItem) it.next();
+
+        		Point p = sizes[i++];
+        		Rectangle rect = new Rectangle(x, itemArea.y, p.x, itemArea.height);
+    			item.setBounds(rect);
+    			toolitemRenderer.setBounds(rect);
+    			x += p.x + spacing;
+
+        		if( (item.getStyle() & SWT.DROP_DOWN) != 0 ) {
+        			item.setDropDownArea(toolitemRenderer.calculateDropDownArea(item.getBounds()));
+        		}
+
+        		toolitemRenderer.setHover(currentItem == item);
+        		toolitemRenderer.paint(gc, item);
+        	}
+    	}
     }
 
     private void onKeyDown(Event e)
@@ -816,8 +880,10 @@ public class PGroup extends Canvas
         redraw();
     }
 
-	List getToolItems() {
-		return toolitems;
+	PGroupToolItem[] getToolItems() {
+		PGroupToolItem[] rv = new PGroupToolItem[toolitems.size()];
+		toolitems.toArray(rv);
+		return rv;
 	}
 
 	PGroupToolItem getActiveToolItem() {
