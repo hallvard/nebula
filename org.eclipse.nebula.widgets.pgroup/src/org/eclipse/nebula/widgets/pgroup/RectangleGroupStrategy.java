@@ -401,12 +401,12 @@ public class RectangleGroupStrategy extends AbstractGroupStrategy
         		Point[] sizes = item.getSizes();
 
         		if( min ) {
-        			Rectangle rect = new Rectangle(x, 2, sizes[1].x, titleHeight - 4);
+        			Rectangle rect = new Rectangle(x, titleHeight - titleAreaHeight+2, sizes[1].x, Math.max(titleAreaHeight, toggleHeight)-4);
         			item.setBounds(rect);
         			toolitemRenderer.setBounds(rect);
         			x += sizes[1].x + spacing;
         		} else {
-        			Rectangle rect = new Rectangle(x, 2, sizes[0].x, titleHeight - 4);
+        			Rectangle rect = new Rectangle(x, titleHeight - titleAreaHeight+2, sizes[0].x, Math.max(titleAreaHeight, toggleHeight)-4);
         			item.setBounds(rect);
         			toolitemRenderer.setBounds(rect);
         			x += sizes[0].x + spacing;

@@ -35,19 +35,19 @@ public class SimpleToolItemRenderer extends AbstractToolItemRenderer {
 
 		if (item.getText().length() > 0 && item.getImage() != null
 				&& ! min) {
-			gc.drawImage(item.getImage(), rect.x + 2, 2 + (int)(rect.height / 2.0 - item.getImage().getImageData().height / 2.0));
+			gc.drawImage(item.getImage(), rect.x + padding, rect.y + padding + (int)(rect.height / 2.0 - item.getImage().getImageData().height / 2.0));
 			Point p = gc.textExtent(item.getText());
-			gc.drawString(item.getText(), rect.x + 2 + item.getImage().getImageData().width + 2, rect.y + (int)(rect.height / 2.0 - p.y / 2.0), true);
+			gc.drawString(item.getText(), rect.x + padding + item.getImage().getImageData().width + 2, rect.y + (int)(rect.height / 2.0 - p.y / 2.0), true);
 		} else if (item.getImage() != null) {
-			gc.drawImage(item.getImage(), rect.x + 2, 2 + (int)(rect.height / 2.0 - item.getImage().getImageData().height / 2.0));
+			gc.drawImage(item.getImage(), rect.x + padding, rect.y + padding + (int)(rect.height / 2.0 - item.getImage().getImageData().height / 2.0));
 		} else if (item.getText().length() > 0) {
 			Point p = gc.textExtent(item.getText());
-			gc.drawString(item.getText(), rect.x + 2, rect.y + (int)(rect.height / 2.0 - p.y / 2.0), true);
+			gc.drawString(item.getText(), rect.x + padding, rect.y + (int)(rect.height / 2.0 - p.y / 2.0), true);
 		}
 
 		if( (item.getStyle() & SWT.DROP_DOWN) != 0 ) {
 			gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
-			gc.fillPolygon(new int[] { rect.x + rect.width - 2, rect.height / 2, rect.x + rect.width - 8, rect.height / 2, rect.x + rect.width - 5, rect.height / 2 + 4 }  );
+			gc.fillPolygon(new int[] { rect.x + rect.width - 2, rect.y + rect.height / 2, rect.x + rect.width - 8, rect.y + rect.height / 2, rect.x + rect.width - 5, rect.y + rect.height / 2 + 4 }  );
 		}
 
 		gc.setAlpha(alpha);
