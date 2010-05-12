@@ -243,8 +243,8 @@ public class FormGroupStrategy extends AbstractGroupStrategy
 
         	for(int i = 0; i < items.length; i++ ) {
         		PGroupToolItem item = items[i];
-        		Point s0 = renderer.calculateSize(gc, item, AbstractToolItemRenderer.DEFAULT);
-        		Point s1 = renderer.calculateSize(gc, item, AbstractToolItemRenderer.MIN);
+        		Point s0 = renderer.computeSize(gc, item, AbstractToolItemRenderer.DEFAULT);
+        		Point s1 = renderer.computeSize(gc, item, AbstractToolItemRenderer.MIN);
 
         		size.x += s0.x + spacing;
     			minSize.x += s1.x + spacing;

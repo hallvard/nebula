@@ -36,7 +36,7 @@ public class SimpleToolItemRenderer extends AbstractToolItemRenderer {
 		}
 
 		if (item.getText().length() > 0 && item.getImage() != null
-				&& ! isMin()) {
+				&& getSizeType() != MIN) {
 			gc.drawImage(item.getImage(), rect.x + padding, rect.y + padding + (int)(rect.height / 2.0 - item.getImage().getImageData().height / 2.0));
 			Point p = gc.textExtent(item.getText());
 			gc.drawString(item.getText(), rect.x + padding + item.getImage().getImageData().width + 2, rect.y + (int)(rect.height / 2.0 - p.y / 2.0), true);
@@ -56,7 +56,7 @@ public class SimpleToolItemRenderer extends AbstractToolItemRenderer {
 		gc.setBackground(bg);
 	}
 
-	public Point calculateSize(GC gc, PGroupToolItem item, int type) {
+	public Point computeSize(GC gc, PGroupToolItem item, int type) {
 		int dropDown = (item.getStyle() & SWT.DROP_DOWN) != 0 ? dropDownWidth : 0;
 
 		if( item.getText().length() > 0 && item.getImage() != null ) {
@@ -81,7 +81,7 @@ public class SimpleToolItemRenderer extends AbstractToolItemRenderer {
 		return null;
 	}
 
-	public Rectangle calculateDropDownArea(Rectangle totalRect) {
+	public Rectangle computeDropDownArea(Rectangle totalRect) {
 		return new Rectangle(totalRect.x + totalRect.width - dropDownWidth, totalRect.y, totalRect.width, totalRect.height);
 	}
 }

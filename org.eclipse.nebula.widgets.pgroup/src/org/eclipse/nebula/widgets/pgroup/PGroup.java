@@ -349,7 +349,7 @@ public class PGroup extends Canvas
         	int i = 0;
         	while( it.hasNext() ) {
         		PGroupToolItem item = (PGroupToolItem) it.next();
-        		Point p = toolitemRenderer.calculateSize(gc, item, AbstractToolItemRenderer.DEFAULT);
+        		Point p = toolitemRenderer.computeSize(gc, item, AbstractToolItemRenderer.DEFAULT);
         		sizes[i++] = p;
         		if( width + spacing + p.x > itemArea.width ) {
         			min = true;
@@ -359,13 +359,18 @@ public class PGroup extends Canvas
         		}
         	}
 
-        	toolitemRenderer.setMin(min);
+        	if( min ) {
+        		toolitemRenderer.setSizeType(AbstractToolItemRenderer.MIN);
+        	} else {
+        		toolitemRenderer.setSizeType(AbstractToolItemRenderer.DEFAULT);
+        	}
+
         	if( min ) {
         		it = toolitems.iterator();
         		i = 0;
         		while( it.hasNext() ) {
             		PGroupToolItem item = (PGroupToolItem) it.next();
-            		sizes[i++] = toolitemRenderer.calculateSize(gc, item, AbstractToolItemRenderer.MIN);
+            		sizes[i++] = toolitemRenderer.computeSize(gc, item, AbstractToolItemRenderer.MIN);
         		}
         	}
 
@@ -383,7 +388,7 @@ public class PGroup extends Canvas
     			x += p.x + spacing;
 
         		if( (item.getStyle() & SWT.DROP_DOWN) != 0 ) {
-        			item.setDropDownArea(toolitemRenderer.calculateDropDownArea(item.getBounds()));
+        			item.setDropDownArea(toolitemRenderer.computeDropDownArea(item.getBounds()));
         		}
 
         		toolitemRenderer.setHover(activeToolItem == item);
