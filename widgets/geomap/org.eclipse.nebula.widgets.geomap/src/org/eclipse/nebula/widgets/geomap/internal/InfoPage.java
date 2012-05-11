@@ -57,11 +57,11 @@ public class InfoPage extends AbstractPage implements Page {
                 new Spec("Imagefetchers Threads") { public String computeValue() { return Integer.toString(GeoMap.DEFAULT_NUMBER_OF_IMAGEFETCHER_THREADS); }},
                 new Spec("Number painted tiles") {
                     public String computeValue() {
-                        geoMap.getStats(); 
-                        return geoMap.getStats().tileCount + " of " + NumberFormat.getIntegerInstance().format((long)geoMap.getXTileCount() * geoMap.getYTileCount());
+                        geoMap.getStats();
+                        return geoMap.getStats().tileCount + " of " + NumberFormat.getIntegerInstance().format((long) geoMap.getXTileCount() * geoMap.getYTileCount());
                     }
                 },
-                new Spec("Tilecache") { public String computeValue() { return String.format("%3d / %3d", geoMap.getCache().getSize(), geoMap.getCacheSize()); }},
+                new Spec("Tilecache") { public String computeValue() { return String.format("%3d / %3d", geoMap.getCache().size(), geoMap.getCacheSize()); }},
                 new Spec("Longitude/Latitude") {
                     public String computeValue() {
                         Point p = geoMap.getCursorPosition();
