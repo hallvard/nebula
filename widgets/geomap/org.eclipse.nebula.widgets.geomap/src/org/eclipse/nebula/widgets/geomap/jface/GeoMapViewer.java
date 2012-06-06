@@ -21,8 +21,14 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
+import org.eclipse.nebula.cwt.animation.AnimationRunner;
+import org.eclipse.nebula.cwt.animation.effects.IEffect;
+import org.eclipse.nebula.cwt.animation.movement.ExpoOut;
+import org.eclipse.nebula.cwt.animation.movement.IMovement;
+import org.eclipse.nebula.cwt.animation.movement.LinearInOut;
 import org.eclipse.nebula.widgets.geomap.GeoMap;
 import org.eclipse.nebula.widgets.geomap.PointD;
+import org.eclipse.nebula.widgets.geomap.animation.CenterOn;
 import org.eclipse.nebula.widgets.geomap.internal.DefaultMouseHandler;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -278,10 +284,18 @@ public class GeoMapViewer extends ContentViewer {
 		Rectangle insideMargin = new Rectangle(revealMargin, revealMargin, size.x - revealMargin, size.y - revealMargin);
 		if (position != null && (center || (! insideMargin.contains(position)))) {
 			Point mapPosition = geoMap.getMapPosition();
-			geoMap.setCenterPosition(new Point(position.x + mapPosition.x, position.y + mapPosition.y));
+			centerOn(new Point(position.x + mapPosition.x, position.y + mapPosition.y));
 		}
 	}
 
+	public void centerOn(Point position) {
+		IMovement movement = new LinearInOut();
+		if (! startAnimation(new CenterOn(getGeoMap(), position, movement, null, null))) {
+			geoMap.setCenterPosition(position);
+			refresh();
+		}
+	}
+	
 	public void revealAll() {
 		zoomTo(((IStructuredContentProvider) getContentProvider()).getElements(getInput()));
 	}
@@ -337,6 +351,7 @@ public class GeoMapViewer extends ContentViewer {
 		}
 		
 		public void mouseDown(MouseEvent e) {
+			stopAnimation();
 			super.mouseDown(e);
 			if (isPanning() || isZooming()) {
 				return;
@@ -384,6 +399,35 @@ public class GeoMapViewer extends ContentViewer {
 	    public void mouseHover(MouseEvent e) {
 	    	handleToolTip(e);
 	    }
+
+		protected void center(MouseEvent e) {
+			Point mapPosition = getGeoMap().getMapPosition();
+			centerOn(new Point(mapPosition.x + e.x, mapPosition.y + e.y));
+		}
+	}
+
+	private AnimationRunner animationRunner = new AnimationRunner(50);
+
+	protected AnimationRunner getAnimationRunner() {
+		return animationRunner;
+	}
+	
+	private boolean startAnimation(IEffect effect) {
+		AnimationRunner animationRunner = getAnimationRunner();
+		if (animationRunner != null) {
+			animationRunner.runEffect(effect);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean stopAnimation() {
+		AnimationRunner animationRunner = getAnimationRunner();
+		if (animationRunner != null) {
+			animationRunner.cancel();
+			return true;
+		}
+		return false;
 	}
 
 	void handleToolTip(Event e) {		handleToolTip(e.x, e.y);}

@@ -12,6 +12,10 @@ package org.eclipse.nebula.widgets.geomap.jface.example;
 import org.eclipse.swt.SWT;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.nebula.examples.AbstractExampleTab;
 import org.eclipse.nebula.widgets.geomap.OsmTileServer;
 import org.eclipse.nebula.widgets.geomap.PointD;
@@ -58,9 +62,7 @@ public class GeoMapViewerExampleTab extends AbstractExampleTab {
 		
 		group.setLayout(new GridLayout(2, false));
 
-		Label tileServerLabel = new Label(group, SWT.NONE);
-		tileServerLabel.setText("Tile server: ");
-		tileServerLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		addLabel("Tile server: ", group);
 		final Combo tileServerControl = new Combo(group, SWT.NONE);
 		tileServerControl.setItems(new String[]{"http://tile.openstreetmap.org/{0}/{1}/{2}.png", "http://mt1.google.com/vt/lyrs=m@129&hl=en&s=Galileo&z={0}&x={1}&y={2}"});
 		tileServerControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
@@ -74,9 +76,7 @@ public class GeoMapViewerExampleTab extends AbstractExampleTab {
 			}
 		});
 
-		Label moveSelectionModeLabel = new Label(group, SWT.NONE);
-		moveSelectionModeLabel.setText("Move selection mode: ");
-		moveSelectionModeLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		addLabel("Move selection mode: ", group);
 		final Combo moveSelectionModeControl = new Combo(group, SWT.READ_ONLY);
 		moveSelectionModeControl.setItems(new String[]{"Cannot move selection", "Allow, check readonly on mouse down", "Allow, just try to set new location"});
 		moveSelectionModeControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
@@ -88,9 +88,7 @@ public class GeoMapViewerExampleTab extends AbstractExampleTab {
 			}
 		});
 		
-		Label clipRuleLabel = new Label(group, SWT.NONE);
-		clipRuleLabel.setText("Clip rule: ");
-		clipRuleLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		addLabel("Clip rule: ", group);
 		final Combo clipRuleControl = new Combo(group, SWT.READ_ONLY);
 		clipRuleControl.setItems(new String[]{"Don't clip", "Clip on element position", "Clip in image bounds"});
 		clipRuleControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
@@ -101,6 +99,33 @@ public class GeoMapViewerExampleTab extends AbstractExampleTab {
 				geoMapViewer.setClipRule(clipRuleControl.getSelectionIndex());
 			}
 		});
+		
+		addLabel("Contents: ", group);
+		ListViewer contentList = new ListViewer(group, SWT.NONE);
+		contentList.getControl().setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
+		contentList.setContentProvider(new ArrayContentProvider());
+		contentList.setLabelProvider(new LabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof ContributorLocation) {
+					return element.toString();
+				}
+				return super.getText(element);
+			}
+		});
+		contentList.setInput(contributorLocations);
+		contentList.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				geoMapViewer.setSelection(event.getSelection(), true);
+			}
+		});
+	}
+	
+	private void addLabel(String text, Composite composite) {
+		Label label = new Label(composite, SWT.NONE);
+		label.setText(text);
+		label.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 	}
 	
 	@Override
