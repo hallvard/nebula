@@ -94,8 +94,7 @@ public class LabelImageProvider extends LabelProvider implements IPinPointProvid
 		this.frameStyle = frameStyle;
 	}
 
-	@Override
-	public Image getImage(Object element) {
+	protected Image getLabelImage(Object element) {
 		String text = getText(element);
 		if (text == null) {
 			return null;
@@ -108,6 +107,11 @@ public class LabelImageProvider extends LabelProvider implements IPinPointProvid
 			image = getImageRegistry().get(text);
 		}
 		return image;
+	}
+
+	@Override
+	public Image getImage(Object element) {
+		return getLabelImage(element);
 	}
 
 	public Point getPinPoint(Object element) {

@@ -219,7 +219,10 @@ public class GeoMapViewer extends ContentViewer {
 	}
 
 	private Point getElementPosition(Object element, Point into, boolean mapRelative) {
-		PointD lonLat = (element instanceof PointD ? (PointD) element : getLocationProvider().getLonLat(element));
+		PointD lonLat = getLocationProvider().getLonLat(element);
+		if (lonLat == null) {
+			lonLat = (element instanceof PointD ? (PointD) element : (element instanceof Located ? ((Located) element).getLonLat() : null));
+		}
 		if (lonLat == null) {
 			return null;
 		}
@@ -283,7 +286,7 @@ public class GeoMapViewer extends ContentViewer {
 	}
 
 	public void revealAll() {
-		zoomTo(((IStructuredContentProvider) getContentProvider()).getElements(getInput()));
+		zoomTo(((IStructuredContentProvider) getContentProvider()).getElements(getInput()), -1);
 	}
 
 	private void setSelection(Object selection) {
@@ -441,11 +444,14 @@ public class GeoMapViewer extends ContentViewer {
     	return rect;
     }
     
-    public void zoomTo(Object[] elements) {
+	private static final int MAX_ZOOM_TO = 12;
+
+    public void zoomTo(Object[] elements, int maxZoom) {
+    	getGeoMap().setZoom(getGeoMap().getTileServer().getMaxZoom());
     	Rectangle rect = getBounds(elements);
     	if (rect == null) {
     		return;
     	}
-    	getGeoMap().zoomTo(rect);
+    	getGeoMap().zoomTo(rect, maxZoom >= 0 ? maxZoom : MAX_ZOOM_TO);
     }
 }

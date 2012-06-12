@@ -600,6 +600,13 @@ public class GeoMap extends Canvas {
     private int zoomMargin = 10;
     
     public void zoomTo(Rectangle rect) {
+    	zoomTo(rect, -1);
+    }
+
+    public void zoomTo(Rectangle rect, int maxZoom) {
+    	if (maxZoom < 0 || maxZoom > getTileServer().getMaxZoom()) {
+    		maxZoom = getTileServer().getMaxZoom();
+    	}
     	Rectangle zoomRectangle = new Rectangle(rect.x, rect.y, rect.width, rect.height);
     	Point mapSize = getSize();
     	Point pivot = new Point(0, 0);
@@ -611,9 +618,9 @@ public class GeoMap extends Canvas {
 			zoomRectangle.y /= 2;
 			zoomRectangle.width /= 2;
 			zoomRectangle.height /= 2;
-		} while (Math.min(mapSize.x / (zoomRectangle.width + zoomMargin), mapSize.y / (zoomRectangle.height + zoomMargin)) < 1);
+		} while (Math.min(mapSize.x / (zoomRectangle.width + zoomMargin), mapSize.y / (zoomRectangle.height + zoomMargin)) < 1 || getZoom() > maxZoom);
 
-		while (Math.min(mapSize.x / (zoomRectangle.width + zoomMargin), mapSize.y / (zoomRectangle.height + zoomMargin)) > 1) {
+		while (Math.min(mapSize.x / (zoomRectangle.width + zoomMargin), mapSize.y / (zoomRectangle.height + zoomMargin)) > 1 && getZoom() < maxZoom) {
 			// pivot on center of zoom rectangle
 			zoomIn(pivot);
 			// scale zoom rectangle up, to match zoom level
