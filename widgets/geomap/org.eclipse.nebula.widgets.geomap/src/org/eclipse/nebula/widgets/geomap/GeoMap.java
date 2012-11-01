@@ -11,12 +11,12 @@
 
 package org.eclipse.nebula.widgets.geomap;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.FutureTask;
@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.nebula.widgets.geomap.internal.DefaultMouseHandler;
 import org.eclipse.nebula.widgets.geomap.internal.DefaultMouseHandler;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -249,8 +248,6 @@ public class GeoMap extends Canvas {
     
     public static final int DEFAULT_CACHE_SIZE = 256;
     public static final int DEFAULT_NUMBER_OF_IMAGEFETCHER_THREADS = 4;
-    
-    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     
     private Point mapSize = new Point(0, 0);
     private Point mapPosition = new Point(0, 0);
@@ -513,22 +510,32 @@ public class GeoMap extends Canvas {
         waitForeground.dispose();
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
+    //
+    
+    private List<GeoMapListener> geoMapListeners = new ArrayList<GeoMapListener>();
+    
+    public void addGeoMapListener(GeoMapListener listener) {
+        geoMapListeners.add(listener);
     }
 
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
+    public void removeGeoMapListener(GeoMapListener listener) {
+    	geoMapListeners.remove(listener);
     }
-    
-    public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(propertyName, listener);
+
+    private void fireCenterChanged() {
+    	for (GeoMapListener listener : geoMapListeners) {
+			listener.centerChanged();
+		}
     }
-    
-    public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(propertyName, listener);
+
+    private void fireZoomChanged() {
+    	for (GeoMapListener listener : geoMapListeners) {
+    		listener.zoomChanged();
+    	}
     }
-    
+
+    //
+
     public void setTileServer(TileServer tileServer) {
         this.tileServer = tileServer;
         cache.clear();
@@ -550,7 +557,7 @@ public class GeoMap extends Canvas {
         Point oldMapPosition = getMapPosition();
         mapPosition.x = x;
         mapPosition.y = y;
-        pcs.firePropertyChange("mapPosition", oldMapPosition, getMapPosition());
+        fireCenterChanged();
     }
 
     public void translateMapPosition(int tx, int ty) {
@@ -570,7 +577,7 @@ public class GeoMap extends Canvas {
         this.zoom = Math.min(tileServer.getMaxZoom(), zoom);
         mapSize.x = getXMax();
         mapSize.y = getYMax();
-        pcs.firePropertyChange("zoom", oldZoom, zoom);
+        fireZoomChanged();
     }
 
     public void zoomIn(Point pivot) {
