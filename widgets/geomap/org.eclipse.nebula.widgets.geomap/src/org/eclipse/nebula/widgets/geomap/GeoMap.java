@@ -26,8 +26,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.nebula.widgets.geomap.internal.DefaultMouseHandler;
 import org.eclipse.nebula.widgets.geomap.internal.DefaultMouseHandler;
@@ -95,8 +93,6 @@ import org.eclipse.swt.widgets.Display;
  * @version $Revision$
  */
 public class GeoMap extends Canvas {
-    
-    private static final Logger log = Logger.getLogger(GeoMap.class.getName());
     
     /**
      * Stats class, usefull for debugging caching of tiles,
@@ -177,7 +173,6 @@ public class GeoMap extends Canvas {
                         });
                     }
                 } catch (SWTException e) {
-                    log.log(Level.INFO, "swt exception during redraw display-race, ignoring");
                 }
                 return;
             }
@@ -195,10 +190,9 @@ public class GeoMap extends Canvas {
                         });
                     }
                 } catch (SWTException e) {
-                    log.log(Level.INFO, "swt exception during redraw display-race, ignoring");
                 }
             } catch (Exception e) {
-                log.log(Level.SEVERE, "failed to load imagedata from url: " + tileUrl, e);
+//                log.log(Level.SEVERE, "failed to load imagedata from url: " + tileUrl, e);
             }
         }
         
