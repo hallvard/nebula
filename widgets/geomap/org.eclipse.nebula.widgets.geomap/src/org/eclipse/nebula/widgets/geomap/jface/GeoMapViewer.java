@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2012 Hallvard Tr¾tteberg.
+ * Copyright (c) 2012 Hallvard Trï¿½tteberg.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Hallvard Tr¾tteberg - initial API and implementation
+ *     Hallvard Trï¿½tteberg - initial API and implementation
  ******************************************************************************/
 package org.eclipse.nebula.widgets.geomap.jface;
 
@@ -22,6 +22,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.nebula.widgets.geomap.GeoMap;
+import org.eclipse.nebula.widgets.geomap.GeoMapUtil;
 import org.eclipse.nebula.widgets.geomap.PointD;
 import org.eclipse.nebula.widgets.geomap.internal.DefaultMouseHandler;
 import org.eclipse.swt.SWT;
@@ -223,8 +224,8 @@ public class GeoMapViewer extends ContentViewer {
 		if (lonLat == null) {
 			return null;
 		}
-		int x = GeoMap.lon2position(lonLat.x, geoMap.getZoom());
-		int y = GeoMap.lat2position(lonLat.y, geoMap.getZoom());
+		int x = GeoMapUtil.lon2position(lonLat.x, geoMap.getZoom());
+		int y = GeoMapUtil.lat2position(lonLat.y, geoMap.getZoom());
 		if (mapRelative) {
 			Point p = geoMap.getMapPosition();
 			x -= p.x;
@@ -325,6 +326,10 @@ public class GeoMapViewer extends ContentViewer {
 			super(geoMapViewer.getGeoMap());
 		}
 
+		public Point getMapSize() {
+			return getControl().getSize();
+		}
+
 		@Override
 		protected boolean isPanStart(MouseEvent e) {
 			return super.isPanStart(e) && getElementAt(e.x, e.y, thumbSize) == null;
@@ -370,7 +375,7 @@ public class GeoMapViewer extends ContentViewer {
 			if (isSelecting()) {
 				Point oldPosition = getElementPosition(selection, new Point(0, 0), false);
 				Point newPosition = new Point(oldPosition.x + selectionOffset.x, oldPosition.y + selectionOffset.y);
-				PointD lonLat = geoMap.getLongitudeLatitude(newPosition);
+				PointD lonLat = GeoMapUtil.getLongitudeLatitude(newPosition, geoMap.getZoom());
 				@SuppressWarnings("unused")
 				boolean changed = getLocationProvider().setLonLat(selection, lonLat.x, lonLat.y);
 				reveal(selection, checkButtons(e, getPanCenterButtons()));
@@ -420,7 +425,7 @@ public class GeoMapViewer extends ContentViewer {
 			if (location == null) {
 				continue;
 			}
-			Point position = this.geoMap.computePosition(location);
+			Point position = GeoMapUtil.computePosition(location, geoMap.getZoom());
 			if (rect == null) {
 				rect = new Rectangle(position.x, position.y, 1, 1);
 			} else {

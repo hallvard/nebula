@@ -13,6 +13,10 @@ package org.eclipse.nebula.widgets.geomap;
 
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.nebula.widgets.geomap.internal.TileRef;
 
 /**
  * This class encapsulates a tileserver, which has the concept
@@ -21,7 +25,7 @@ import java.text.MessageFormat;
 public class TileServer {
 
     private String url;
-    private String urlFormat = "{0}/{1}/{2}.png"; // slippy format, must match getURLFormatArguments
+    private String urlFormat = "{0}/{1}/{2}.png"; // slippy format z/x/y, must match getURLFormatArguments
     private final int maxZoom;
     private boolean broken;
 
@@ -34,6 +38,8 @@ public class TileServer {
 			this.url = url; 
 		}
     }
+
+    // See https://raw.github.com/follesoe/MapReplace/master/js/interceptors.js for a list of tile servers
 
     public TileServer(String url, int maxZoom, String urlFormat) {
     	this.url = url;
@@ -50,12 +56,41 @@ public class TileServer {
     	return new Object[]{String.valueOf(tile.z), String.valueOf(tile.x), String.valueOf(tile.y)};
     }
     
+    protected Map<String, String> createZXYMap(TileRef tile, String zKey, String xKey, String yKey) {
+    	Map<String, String> formatMap = new HashMap<String, String>();
+    	formatMap.put(zKey, String.valueOf(tile.z));
+    	formatMap.put(xKey, String.valueOf(tile.x));
+    	formatMap.put(yKey, String.valueOf(tile.y));
+    	return formatMap;
+    }
+    
+    protected Map<String, String> getURLFormatMap(TileRef tile) {
+    	return createZXYMap(tile, "{0}", "{1}", "{2}");
+    }
+    
     protected String getTileURL(TileRef tile, String urlFormat, Object[] formatArguments) {
     	return url + MessageFormat.format(urlFormat, formatArguments);
     }
-    
+
+    protected String getTileURL(TileRef tile, String urlFormat, Map<String, String> formatMap) {
+    	for (String key : formatMap.keySet()) {
+			urlFormat = urlFormat.replace(key, formatMap.get(key));
+		}
+    	return this.url + urlFormat;
+    }
+
     public String getTileURL(TileRef tile) {
-    	return (urlFormat != null ? getTileURL(tile, urlFormat, getURLFormatArguments(tile)) : null);
+    	if (urlFormat != null) {
+	    	Object[] urlFormatArguments = getURLFormatArguments(tile);
+	    	if (urlFormatArguments != null) {
+	    		return getTileURL(tile, urlFormat, urlFormatArguments);
+	    	}
+	    	Map<String, String> urlFormatMap = getURLFormatMap(tile);
+	    	if (urlFormatMap != null) {
+	    		return getTileURL(tile, urlFormat, urlFormatMap);
+	    	}
+    	}
+    	return null;
     }
     
     public String toString() {
