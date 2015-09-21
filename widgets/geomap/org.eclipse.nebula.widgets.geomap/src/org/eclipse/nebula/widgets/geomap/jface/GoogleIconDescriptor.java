@@ -110,7 +110,7 @@ public class GoogleIconDescriptor extends ImageDescriptor {
 	public String getUrlString() {
 		String chst = options.iconClass;
 		if (options.hasShadow) {
-			chst += "_withshadow";
+			chst += "_withshadow"; //$NON-NLS-1$
 		}
 		Object[] args = {options.iconName, options.style, options.text, toHex(options.fillColor), toHex(options.textColor)};
 		StringBuilder chld = new StringBuilder();
@@ -120,7 +120,7 @@ public class GoogleIconDescriptor extends ImageDescriptor {
 					chld.append(argsSep);
 				}
 				try {
-					chld.append(URLEncoder.encode(args[i].toString(), "utf-8"));
+					chld.append(URLEncoder.encode(args[i].toString(), "utf-8")); //$NON-NLS-1$
 				} catch (UnsupportedEncodingException e) {
 					// ignore
 				}
