@@ -13,6 +13,7 @@ package org.eclipse.nebula.widgets.xviewer.action;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.nebula.widgets.xviewer.XViewer;
+import org.eclipse.nebula.widgets.xviewer.XViewerText;
 import org.eclipse.nebula.widgets.xviewer.customize.CustomizeData;
 import org.eclipse.nebula.widgets.xviewer.util.internal.images.XViewerImageCache;
 
@@ -34,7 +35,12 @@ public class TableCustomizationCustomizeDataAction extends Action {
 
    @Override
    public ImageDescriptor getImageDescriptor() {
-      return XViewerImageCache.getImageDescriptor("customize.gif");
+      try {
+         return custData.getImageDescriptor(xViewer.getCustomizeMgr().isCustomizationUserDefault(custData));
+      } catch (Exception ex) {
+         // do nothing
+      }
+      return XViewerImageCache.getImageDescriptor("customize.gif"); //$NON-NLS-1$
    }
 
    @Override
@@ -45,7 +51,7 @@ public class TableCustomizationCustomizeDataAction extends Action {
 
    @Override
    public String getToolTipText() {
-      return "Customize Table";
+      return XViewerText.get("toolTip.customizeTable"); //$NON-NLS-1$
    }
 
 }

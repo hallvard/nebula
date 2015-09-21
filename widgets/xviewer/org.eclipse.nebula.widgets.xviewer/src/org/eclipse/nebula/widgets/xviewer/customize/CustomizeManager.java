@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.nebula.widgets.xviewer.Activator;
 import org.eclipse.nebula.widgets.xviewer.IXViewerFactory;
 import org.eclipse.nebula.widgets.xviewer.IXViewerLabelProvider;
@@ -25,7 +26,7 @@ import org.eclipse.nebula.widgets.xviewer.XViewerComputedColumn;
 import org.eclipse.nebula.widgets.xviewer.XViewerSorter;
 import org.eclipse.nebula.widgets.xviewer.XViewerText;
 import org.eclipse.nebula.widgets.xviewer.XViewerTextFilter;
-import org.eclipse.nebula.widgets.xviewer.customize.dialog.XViewerCustomizeDialog;
+import org.eclipse.nebula.widgets.xviewer.util.Pair;
 import org.eclipse.nebula.widgets.xviewer.util.XViewerException;
 import org.eclipse.nebula.widgets.xviewer.util.internal.Strings;
 import org.eclipse.nebula.widgets.xviewer.util.internal.XViewerLib;
@@ -36,7 +37,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 
 /**
  * This manages the default table column definitions versus the user modified column data, sorter and filters.
- * 
+ *
  * @author Donald G. Dunne
  */
 public class CustomizeManager {
@@ -46,8 +47,8 @@ public class CustomizeManager {
    private XViewerTextFilter xViewerTextFilter;
    private CustomizeData currentCustData;
 
-   public final static String CURRENT_LABEL = XViewerText.get("label.current");
-   public final static String TABLE_DEFAULT_LABEL = XViewerText.get("label.default");
+   public final static String CURRENT_LABEL = XViewerText.get("label.current"); //$NON-NLS-1$
+   public final static String TABLE_DEFAULT_LABEL = XViewerText.get("label.default"); //$NON-NLS-1$
    // Added to keep filter, sorter from working till finished loading
    public boolean loading = true;
    public final static List<String> REMOVED_COLUMNS_TO_IGNORE = Arrays.asList("Metrics from Tasks");
@@ -165,13 +166,13 @@ public class CustomizeManager {
 
    private XViewerColumn resolveByName(XViewerColumn storedCol) {
       XViewerColumn resolvedCol;
-      String name = storedCol.getName().replaceAll(" ", "");
+      String name = storedCol.getName().replaceAll(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
       resolvedCol = oldNameToColumnId.get(name);
       // First try to match by .<oldname>
       if (resolvedCol == null) {
          for (XViewerColumn xCol : xViewer.getXViewerFactory().getDefaultTableCustomizeData().getColumnData().getColumns()) {
             String colId = xCol.getId().toLowerCase();
-            String oldName = "." + name.toLowerCase();
+            String oldName = "." + name.toLowerCase(); //$NON-NLS-1$
             if (colId.endsWith(oldName)) {
                resolvedCol = xCol;
                oldNameToColumnId.put(name, resolvedCol);
@@ -180,7 +181,7 @@ public class CustomizeManager {
             }
          }
       }
-      // Then try to match by id endswith name 
+      // Then try to match by id endswith name
       if (resolvedCol == null) {
          for (XViewerColumn xCol : xViewer.getXViewerFactory().getDefaultTableCustomizeData().getColumnData().getColumns()) {
             if (xCol.getId().endsWith(name)) {
@@ -197,9 +198,9 @@ public class CustomizeManager {
    private XViewerColumn getKnownStoredValue(XViewerColumn storedCol, XViewerColumn resolvedCol) {
       String name = storedCol.getName();
       if (name.equals("Impacted Items")) {
-         resolvedCol = xViewer.getXViewerFactory().getDefaultXViewerColumn("ats.column.actionableItems");
+         resolvedCol = xViewer.getXViewerFactory().getDefaultXViewerColumn("ats.column.actionableItems"); //$NON-NLS-1$
       } else if (name.equals("State Percent")) {
-         resolvedCol = xViewer.getXViewerFactory().getDefaultXViewerColumn("ats.column.statePercentComplete");
+         resolvedCol = xViewer.getXViewerFactory().getDefaultXViewerColumn("ats.column.statePercentComplete"); //$NON-NLS-1$
       }
       return resolvedCol;
    }
@@ -220,7 +221,7 @@ public class CustomizeManager {
    }
 
    public void setColumnFilterText(String colId, String text) {
-      if (text == null || text.equals("")) {
+      if (text == null || text.equals("")) { //$NON-NLS-1$
          currentCustData.columnFilterData.removeFilterText(colId);
       } else {
          currentCustData.columnFilterData.setFilterText(colId, text);
@@ -269,23 +270,26 @@ public class CustomizeManager {
    }
 
    public void handleTableCustomization() {
-      (new XViewerCustomizeDialog(xViewer)).open();
+      Dialog dialog = xViewerFactory.getCustomizeDialog(xViewer);
+      if (dialog != null) {
+         dialog.open();
+      }
    }
 
    public void appendToStatusLabel(StringBuffer sb) {
       if (currentCustData != null && currentCustData.getName() != null &&
       //
       !currentCustData.getName().equals(CURRENT_LABEL) &&
-      // 
+      //
       !currentCustData.getName().equals(TABLE_DEFAULT_LABEL) &&
       //
       currentCustData.getName() != null) {
-         sb.append(XViewerText.get("label.custom", currentCustData.getName()));
+         sb.append(XViewerText.get("label.custom", currentCustData.getName())); //$NON-NLS-1$
       }
    }
 
    /**
-    * @return the currentCustData
+    * @return the currentCustData; makes a copy of columns so they don't collide with each other
     */
    public CustomizeData generateCustDataFromTable() {
       CustomizeData custData = new CustomizeData();
@@ -295,15 +299,17 @@ public class CustomizeManager {
       for (Integer index : xViewer.getTree().getColumnOrder()) {
          TreeColumn treeCol = xViewer.getTree().getColumn(index);
          XViewerColumn xCol = (XViewerColumn) treeCol.getData();
-         xCol.setWidth(treeCol.getWidth());
-         xCol.setShow(treeCol.getWidth() > 0);
-         columns.add(xCol);
+         XViewerColumn newXCol = xCol.copy();
+         newXCol.setWidth(treeCol.getWidth());
+         newXCol.setShow(treeCol.getWidth() > 0);
+         columns.add(newXCol);
       }
       // Add all columns that are not visible
       for (XViewerColumn xCol : xViewer.getCustomizeMgr().getCurrentTableColumns()) {
          if (!columns.contains(xCol)) {
-            xCol.setShow(false);
-            columns.add(xCol);
+            XViewerColumn newXCol = xCol.copy();
+            newXCol.setShow(false);
+            columns.add(newXCol);
          }
       }
       custData.columnData.setColumns(columns);
@@ -378,9 +384,22 @@ public class CustomizeManager {
       return 0;
    }
 
+   public Pair<XViewerColumn, Integer> getColumnNumFromXViewerColumn(String columnId) {
+      if (!xViewer.getTree().isDisposed()) {
+         for (Integer index : xViewer.getTree().getColumnOrder()) {
+            TreeColumn treeCol = xViewer.getTree().getColumn(index);
+            XViewerColumn treeXCol = (XViewerColumn) treeCol.getData();
+            if (treeXCol.getId().equals(columnId)) {
+               return new Pair<XViewerColumn, Integer>(treeXCol, index);
+            }
+         }
+      }
+      return null;
+   }
+
    public CustomizeData getTableDefaultCustData() {
       CustomizeData custData = xViewer.getXViewerFactory().getDefaultTableCustomizeData();
-      if (custData.getName() == null || custData.getName().equals("")) {
+      if (custData.getName() == null || custData.getName().equals("")) { //$NON-NLS-1$
          custData.setName(TABLE_DEFAULT_LABEL);
       }
       custData.setNameSpace(xViewer.getViewerNamespace());
@@ -393,12 +412,12 @@ public class CustomizeManager {
          if (cols.isEmpty()) {
             return;
          }
-         sb.append(XViewerText.get("label.status.sort"));
+         sb.append(XViewerText.get("label.status.sort")); //$NON-NLS-1$
          for (XViewerColumn col : getSortXCols()) {
             if (col != null) {
-               sb.append(XViewerText.get("label.status.sort.start"));
+               sb.append(XViewerText.get("label.status.sort.start")); //$NON-NLS-1$
                sb.append(col.getName());
-               sb.append(col.isSortForward() ? XViewerText.get("label.status.sort.fwd") : XViewerText.get("label.status.sort.rev"));
+               sb.append(col.isSortForward() ? XViewerText.get("label.status.sort.fwd") : XViewerText.get("label.status.sort.rev")); //$NON-NLS-1$ //$NON-NLS-2$
             }
          }
       }
@@ -442,13 +461,13 @@ public class CustomizeManager {
     * Set to newName or clear if newName == ""
     */
    public void customizeColumnName(XViewerColumn xCol, String newName) {
-      if (newName.equals("")) {
+      if (newName.equals("")) { //$NON-NLS-1$
          XViewerColumn defaultXCol = xViewerFactory.getDefaultXViewerColumn(xCol.getId());
          if (defaultXCol == null) {
-            XViewerLib.popup("ERROR", XViewerText.get("error.column_undefined"));
+            XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.column_undefined")); //$NON-NLS-1$ //$NON-NLS-2$
             return;
          }
-         xCol.setName(xCol.getName());
+         xCol.setName(defaultXCol.getName());
       } else {
          xCol.setName(newName);
       }
@@ -480,7 +499,7 @@ public class CustomizeManager {
          return;
       }
       currentCustData = newCustData;
-      if (currentCustData.getName() == null || currentCustData.getName().equals("")) {
+      if (currentCustData.getName() == null || currentCustData.getName().equals("")) { //$NON-NLS-1$
          currentCustData.setName(CURRENT_LABEL);
       }
       currentCustData.setNameSpace(xViewer.getViewerNamespace());
@@ -519,17 +538,17 @@ public class CustomizeManager {
          StringBuffer sb = new StringBuffer();
          sb.append(xCol.getName());
          if (Strings.isValid(xCol.getDescription()) && !xCol.getDescription().equals(xCol.getName())) {
-            sb.append("\n");
+            sb.append("\n"); //$NON-NLS-1$
             sb.append(xCol.getDescription());
          }
          if (Strings.isValid(xCol.getToolTip()) && !xCol.getToolTip().equals(xCol.getName()) && !xCol.getToolTip().equals(
             xCol.getDescription())) {
-            sb.append("\n");
+            sb.append("\n"); //$NON-NLS-1$
             sb.append(xCol.getToolTip());
          }
          // Only show id if different from name and non-null
-         if (xCol.getId() != null && !"".equals(xCol.getId()) && !xCol.getName().equals(xCol.getId())) {
-            sb.append("\n");
+         if (xCol.getId() != null && !"".equals(xCol.getId()) && !xCol.getName().equals(xCol.getId())) { //$NON-NLS-1$
+            sb.append("\n"); //$NON-NLS-1$
             sb.append(xCol.getId());
          }
          column.setToolTipText(sb.toString());
@@ -576,7 +595,6 @@ public class CustomizeManager {
                   currentCustData.getSortingData().setSortXCols(cols);
                }
                xViewer.refresh();
-               xViewer.updateStatusLabel();
             }
          });
       }

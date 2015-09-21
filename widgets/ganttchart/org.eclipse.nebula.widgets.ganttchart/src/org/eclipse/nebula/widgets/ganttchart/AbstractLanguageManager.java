@@ -80,6 +80,27 @@ public abstract class AbstractLanguageManager implements ILanguageManager {
 		return "Reset Zoom Level";
 	}
 
+	public String getAddEventMenuText() {
+		return "Add event";
+	}
 	
+	public String getNewEventDefaultText() {
+		return "Event";
+	}
 
+	public String getPrintJobText() {
+		return "GanttChart";
+	}
+	
+	public String getPrintPageText() {
+		return "Page";
+	}
+	
+	public String getSectionDetailMoreText() {
+		return "More";
+	}
+	
+	public String getHolidayText() {
+		return "Holiday";
+	}
 }

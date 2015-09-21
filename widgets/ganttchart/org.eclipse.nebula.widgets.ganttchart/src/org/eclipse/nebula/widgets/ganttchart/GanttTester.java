@@ -7,10 +7,12 @@
  *
  * Contributors:
  *    emil.crumhorn@gmail.com - initial API and implementation
+ *    ziogiannigmail.com - Bug 464509 - Minute View Implementation
  *******************************************************************************/
 
 package org.eclipse.nebula.widgets.ganttchart;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -77,6 +79,7 @@ public class GanttTester {
     private Button              _bIncreaseDates;
     private Button              _bCreate;
     private Button              _bCreatePlannedDates;
+    private Button              _bShowHolidays;
     private Button              _bUndo;
     private Button              _bRedo;
     private Button              _bRandomEventLength;
@@ -687,6 +690,15 @@ public class GanttTester {
         _bDrawHorizontalLines.setData(KEY, "bDrawHorizontalLines");
         prefLoad(_bDrawHorizontalLines);
         prefHook(_bDrawHorizontalLines);
+        
+        _bShowHolidays = new Button(gLeft, SWT.CHECK);
+        _bShowHolidays.setText("Show Holidays");
+        _bShowHolidays.setSelection(false);
+        _bShowHolidays.setToolTipText("Draw Holidays in Chart");
+        _bShowHolidays.setData(KEY, "bShowHolidays");
+        prefLoad(_bShowHolidays);
+        prefHook(_bShowHolidays);
+
 
         final Group sections = new Group(gLeft, SWT.NONE);
         sections.setText("Use GanttSections");
@@ -1285,6 +1297,36 @@ public class GanttTester {
                 }
             }
         }
+        
+        if(_bShowHolidays.getSelection()) {
+        	Calendar start = Calendar.getInstance();
+        	Calendar end = Calendar.getInstance();
+        	
+        	for(int i = 0; i < _ganttComposite.getEvents().size(); i++) {
+        		GanttEvent event = (GanttEvent) _ganttComposite.getEvents().get(i);
+        		if(event.getActualStartDate().before(start)) {
+        			start = event.getActualStartDate();
+        		}
+        		if(event.getActualEndDate().after(end)) {
+        			end = event.getActualEndDate();
+        		}
+        	}
+        	List<Holiday> holidays = new ArrayList<Holiday>();
+        	Calendar day = Calendar.getInstance();
+        	day.setTime(start.getTime());
+        	
+        	int i = 1;
+        	while(day.before(end)) {
+        		day.add(Calendar.DATE, 5 + r.nextInt(5));
+        		int dow = day.get(Calendar.DAY_OF_WEEK);
+				
+				if (dow != Calendar.SATURDAY && dow != Calendar.SUNDAY) {
+					Calendar date = (Calendar) day.clone();
+					holidays.add(new Holiday(date, "Special free Day " + i++));
+				}
+        	}
+			_ganttComposite.setHolidays(holidays.toArray(new Holiday[holidays.size()]));
+        }
 
         final long time2 = System.currentTimeMillis();
         _timerText.setText("Initial chart creation took " + (time2 - time1) + " ms");
@@ -1578,15 +1620,29 @@ public class GanttTester {
 
         bMoveEventsLeft.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(final SelectionEvent e) {
-                moveAllEvents(Calendar.DATE, -1);
-                moveFocus();
+            	if (_ganttComposite.getCurrentView() == ISettings.VIEW_MINUTE){
+            		moveAllEvents(Calendar.MINUTE, -1);
+                    moveFocus();
+            	}
+            		
+            	else {
+                 moveAllEvents(Calendar.DATE, -1);
+                 moveFocus();
+            	}
             }
         });
 
         bMoveEventsRight.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(final SelectionEvent e) {
-                moveAllEvents(Calendar.DATE, 1);
-                moveFocus();
+            	if (_ganttComposite.getCurrentView() == ISettings.VIEW_MINUTE){
+            		moveAllEvents(Calendar.MINUTE, 1);
+                    moveFocus();
+            	}
+            		
+            	else {
+                 moveAllEvents(Calendar.DATE, 1);
+                 moveFocus();
+            	}
             }
         });
 
@@ -1911,8 +1967,11 @@ public class GanttTester {
 		public boolean allowArrowKeysToScrollChart() {
 			return _bAllowArrowKeysToMoveChart.getSelection();
 		}
-
 		
+		@Override
+		public boolean showHolidayToolTips() {
+			return _bShowHolidays.getSelection();
+		}
     }
 
 }

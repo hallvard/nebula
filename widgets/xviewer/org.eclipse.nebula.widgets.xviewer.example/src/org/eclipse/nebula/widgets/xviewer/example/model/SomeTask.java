@@ -24,21 +24,22 @@ import java.util.List;
 public class SomeTask implements ISomeTask {
 
    private final RunDb runDb;
-   private final TaskType taskType;
+   private TaskType taskType;
    private final String id;
    private final String startTime;
    private final String description;
    private final String category;
    private final String emailAddress;
-   private final Date lastRunDate;
+   private Date lastRunDate;
    private int percentComplete;
    private final List<SomeTask> children = new ArrayList<SomeTask>();
+   private final long longValue;
 
    public SomeTask(RunDb runDb, TaskType taskType, String id, String startTime, String description, String category, String emailAddress, int percentComplete) {
-      this(runDb, taskType, new Date(), id, startTime, description, category, emailAddress, percentComplete);
+      this(runDb, taskType, new Date(), id, startTime, description, category, emailAddress, percentComplete, 50000);
    }
 
-   public SomeTask(RunDb runDb, TaskType taskType, Date lastRunDate, String id, String startTime, String description, String category, String emailAddress, int percentComplete) {
+   public SomeTask(RunDb runDb, TaskType taskType, Date lastRunDate, String id, String startTime, String description, String category, String emailAddress, int percentComplete, long longValue) {
       this.runDb = runDb;
       this.taskType = taskType;
       this.lastRunDate = lastRunDate;
@@ -48,6 +49,7 @@ public class SomeTask implements ISomeTask {
       this.category = category;
       this.emailAddress = emailAddress;
       this.percentComplete = percentComplete;
+      this.longValue = longValue;
    }
 
    public void addChild(SomeTask someTask) {
@@ -101,7 +103,11 @@ public class SomeTask implements ISomeTask {
 
    @Override
    public String getLastRunDateStr() {
-      return new SimpleDateFormat("MM/dd/yyyy hh:mm a").format(getLastRunDate());
+      Date date = getLastRunDate();
+      if (date == null) {
+         return "";
+      }
+      return new SimpleDateFormat("MM/dd/yyyy hh:mm a").format(date);
    }
 
    @Override
@@ -111,6 +117,19 @@ public class SomeTask implements ISomeTask {
 
    public void setPercentComplete(int percentComplete) {
       this.percentComplete = percentComplete;
+   }
+
+   public void setLastRunDate(Date lastRunDate) {
+      this.lastRunDate = lastRunDate;
+   }
+
+   @Override
+   public long getLongValue() {
+      return longValue;
+   }
+
+   public void setTaskType(TaskType taskType) {
+      this.taskType = taskType;
    }
 
 }

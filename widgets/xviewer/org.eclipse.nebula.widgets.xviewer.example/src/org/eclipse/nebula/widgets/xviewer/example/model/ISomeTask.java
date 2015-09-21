@@ -27,7 +27,8 @@ public interface ISomeTask {
       Regression,
       Db_Health,
       Data_Exchange,
-      Backup
+      Backup,
+      Refreshed
    }
 
    public String getStartTime();
@@ -49,4 +50,7 @@ public interface ISomeTask {
    public Date getLastRunDate();
 
    public String getLastRunDateStr();
+
+   public long getLongValue();
+
 }

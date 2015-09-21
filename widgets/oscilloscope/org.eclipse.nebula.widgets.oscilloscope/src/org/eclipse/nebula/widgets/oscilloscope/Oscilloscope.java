@@ -12,6 +12,7 @@
 package org.eclipse.nebula.widgets.oscilloscope;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.nebula.widgets.oscilloscope.multichannel.OscilloscopeStackAdapter;
 import org.eclipse.swt.widgets.Composite;
@@ -38,6 +39,23 @@ public class Oscilloscope extends
 		org.eclipse.nebula.widgets.oscilloscope.multichannel.Oscilloscope {
 
 	/**
+	 * The default delay in milliseconds before the dispatcher is asked to
+	 * redraw.
+	 */
+	public static final int DEFAULT_DELAY = 30;
+
+	/**
+	 * The default number of ticks before a new value is asked.
+	 */
+	public static final int PULSE_DEFAULT = 40;
+
+	/**
+	 * @deprecated use
+	 *             {@link org.eclipse.nebula.widgets.oscilloscope.multichannel.Oscilloscope#HEARTBEAT}
+	 */
+	public static final int[] HEARTBEAT = org.eclipse.nebula.widgets.oscilloscope.multichannel.Oscilloscope.HEARTBEAT;
+
+	/**
 	 * The default constructor.
 	 * 
 	 * @param parent
@@ -50,11 +68,10 @@ public class Oscilloscope extends
 	}
 
 	// Used to map the new listener to the old listener.
-	private HashMap<org.eclipse.nebula.widgets.oscilloscope.OscilloscopeStackAdapter, OscilloscopeStackAdapter> listeners;
+	private Map<org.eclipse.nebula.widgets.oscilloscope.OscilloscopeStackAdapter, OscilloscopeStackAdapter> listeners;
 
-	
-	int scope = 0;
-	
+	private int scope = 0;
+
 	/**
 	 * @deprecated use
 	 *             {@link org.eclipse.nebula.widgets.oscilloscope.multichannel.Oscilloscope}
@@ -224,8 +241,8 @@ public class Oscilloscope extends
 	}
 
 	/**
-	 * This method keeps its own record of listeners but delegates to the
-	 * superclass.
+	 * This method keeps its own record of listeners but also delegates to the
+	 * instance of the superclass.
 	 * 
 	 * @param listener
 	 * @deprecated use
@@ -234,10 +251,10 @@ public class Oscilloscope extends
 	public synchronized void addStackListener(
 			final org.eclipse.nebula.widgets.oscilloscope.OscilloscopeStackAdapter listener) {
 
-		if(listeners ==null){
+		if (listeners == null) {
 			listeners = new HashMap<org.eclipse.nebula.widgets.oscilloscope.OscilloscopeStackAdapter, OscilloscopeStackAdapter>();
 		}
-		
+
 		OscilloscopeStackAdapter adapter = listeners.get(listener);
 		if (adapter == null) {
 
@@ -273,10 +290,11 @@ public class Oscilloscope extends
 				super.removeStackListener(scope, adapter);
 			}
 			listeners.remove(listener);
-			if (listeners.size() == 0)
+			if (listeners.size() == 0) {
 				synchronized (listeners) {
 					listeners = null;
 				}
+			}
 		}
 	}
 }

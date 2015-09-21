@@ -60,6 +60,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -78,7 +79,7 @@ import org.eclipse.ui.dialogs.ListDialog;
 /**
  * Allow for the customization of the xViewer's right-click menus. Full menu can be used or selected Actions accessed
  * for partial implementation in existing menus
- * 
+ *
  * @author Donald G. Dunne
  */
 public class XViewerCustomMenu {
@@ -158,8 +159,8 @@ public class XViewerCustomMenu {
       if (xViewer.isColumnMultiEditEnabled()) {
          updateEditMenu(mm);
       }
-      mm.add(copySelectedCell);
       mm.add(viewSelectedCell);
+      mm.add(copySelectedCell);
       mm.add(copySelected);
       mm.add(copySelectedColumnCells);
       mm.add(new Separator());
@@ -179,18 +180,18 @@ public class XViewerCustomMenu {
       final Collection<TreeItem> selectedTreeItems = Arrays.asList(xViewer.getTree().getSelection());
       Set<TreeColumn> editableColumns = ColumnMultiEditAction.getEditableTreeColumns(xViewer, selectedTreeItems);
       MenuManager editMenuManager =
-         createEditMenuManager(xViewer, "Column Multi-Edit", selectedTreeItems, editableColumns);
+         createEditMenuManager(xViewer, XViewerText.get("menu.edit.multi"), selectedTreeItems, editableColumns); //$NON-NLS-1$
       mm.add(editMenuManager);
    }
 
    public static MenuManager createEditMenuManager(final XViewer xViewer, String name, final Collection<TreeItem> selectedTreeItems, Set<TreeColumn> editableColumns) {
-      MenuManager editMenuManager = new MenuManager(name, "edit");
+      MenuManager editMenuManager = new MenuManager(name, XViewerText.get("menu.edit")); //$NON-NLS-1$
       if (editableColumns.isEmpty()) {
-         editMenuManager.add(new Action("No Editable Columns") {
+         editMenuManager.add(new Action(XViewerText.get("menu.edit.no_columns")) { //$NON-NLS-1$
 
             @Override
             public void run() {
-               XViewerLib.popup("Error", "No fields in this table are Multi-Column-Editable");
+               XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_fields.multi_editable")); //$NON-NLS-1$ //$NON-NLS-2$
             }
 
          });
@@ -206,7 +207,7 @@ public class XViewerCustomMenu {
             if (treeColumn.getData() instanceof XViewerColumn) {
                XViewerColumn xCol = (XViewerColumn) treeColumn.getData();
                if (xCol.isMultiColumnEditable()) {
-                  editMenuManager.add(new Action("Edit " + xCol.getName()) {
+                  editMenuManager.add(new Action(XViewerText.get("menu.edit") + " " + xCol.getName()) { //$NON-NLS-1$//$NON-NLS-2$
 
                      @Override
                      public void run() {
@@ -228,7 +229,7 @@ public class XViewerCustomMenu {
    public void createViewTableReportMenuItem(Menu popupMenu) {
       setupActions();
       final MenuItem item = new MenuItem(popupMenu, SWT.CASCADE);
-      item.setText(XViewerText.get("menu.view_report"));
+      item.setText(XViewerText.get("menu.view_report")); //$NON-NLS-1$
       item.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -245,7 +246,7 @@ public class XViewerCustomMenu {
 
    public void createFilterByColumnMenuItem(Menu popupMenu) {
       final MenuItem item = new MenuItem(popupMenu, SWT.CASCADE);
-      item.setText(XViewerText.get("menu.filter_column"));
+      item.setText(XViewerText.get("menu.column_filter")); //$NON-NLS-1$
       item.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -254,9 +255,20 @@ public class XViewerCustomMenu {
       });
    }
 
+   public void createFilterByValueMenuItem(Menu popupMenu) {
+      final MenuItem item = new MenuItem(popupMenu, SWT.CASCADE);
+      item.setText(XViewerText.get("menu.value_filter")); //$NON-NLS-1$
+      item.addSelectionListener(new SelectionAdapter() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+            performFilterByValue();
+         }
+      });
+   }
+
    public void createClearAllFiltersMenuItem(Menu popupMenu) {
       final MenuItem item = new MenuItem(popupMenu, SWT.CASCADE);
-      item.setText(XViewerText.get("menu.clear_filters"));
+      item.setText(XViewerText.get("menu.clear_filters")); //$NON-NLS-1$
       item.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -267,7 +279,7 @@ public class XViewerCustomMenu {
 
    public void createClearAllSortingMenuItem(Menu popupMenu) {
       final MenuItem item = new MenuItem(popupMenu, SWT.CASCADE);
-      item.setText(XViewerText.get("menu.clear_sorts"));
+      item.setText(XViewerText.get("menu.clear_sorts")); //$NON-NLS-1$
       item.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -284,7 +296,7 @@ public class XViewerCustomMenu {
 
    public void createCopyRowsMenuItem(Menu popupMenu) {
       final MenuItem item = new MenuItem(popupMenu, SWT.CASCADE);
-      item.setText(XViewerText.get("menu.copy_row"));
+      item.setText(XViewerText.get("menu.copy_row")); //$NON-NLS-1$
       item.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -295,7 +307,7 @@ public class XViewerCustomMenu {
 
    public void createCopyCellsMenuItem(Menu popupMenu) {
       final MenuItem item = new MenuItem(popupMenu, SWT.CASCADE);
-      item.setText(XViewerText.get("menu.copy_column"));
+      item.setText(XViewerText.get("menu.copy_column")); //$NON-NLS-1$
       item.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -307,7 +319,7 @@ public class XViewerCustomMenu {
    public void createViewSelectedCellMenuItem(Menu popupMenu) {
       setupActions();
       final MenuItem item = new MenuItem(popupMenu, SWT.CASCADE);
-      item.setText(XViewerText.get("menu.copy_celldata"));
+      item.setText(XViewerText.get("menu.copy_celldata")); //$NON-NLS-1$
       item.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -315,7 +327,7 @@ public class XViewerCustomMenu {
          }
       });
       final MenuItem item1 = new MenuItem(popupMenu, SWT.CASCADE);
-      item1.setText(XViewerText.get("menu.view_celldata"));
+      item1.setText(XViewerText.get("menu.view_celldata")); //$NON-NLS-1$
       item1.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -329,10 +341,9 @@ public class XViewerCustomMenu {
    protected void handleShowColumn() {
       TreeColumn insertTreeCol = xViewer.getRightClickSelectedColumn();
       XViewerColumn insertXCol = insertTreeCol != null ? (XViewerColumn) insertTreeCol.getData() : null;
-      XCheckFilteredTreeDialog dialog =
-         new XCheckFilteredTreeDialog(XViewerText.get("dialog.show_columns.title"),
-            XViewerText.get("dialog.show_columns.prompt"), patternFilter, new ArrayTreeContentProvider(),
-            new XViewerColumnLabelProvider(), new XViewerColumnSorter());
+      XCheckFilteredTreeDialog dialog = new XCheckFilteredTreeDialog(XViewerText.get("dialog.show_columns.title"), //$NON-NLS-1$
+         XViewerText.get("dialog.show_columns.prompt"), patternFilter, new ArrayTreeContentProvider(), //$NON-NLS-1$
+         new XViewerColumnLabelProvider(), new XViewerColumnSorter());
       dialog.setInput(xViewer.getCustomizeMgr().getCurrentTableColumns());
       if (dialog.open() == 0) {
          //         System.out.println("Selected " + dialog.getChecked());
@@ -364,7 +375,7 @@ public class XViewerCustomMenu {
          }
          custData.getColumnData().setColumns(newXCols);
          xViewer.getCustomizeMgr().loadCustomization(custData);
-         xViewer.refresh();
+         xViewer.refreshColumnsWithPreCompute();
       }
    }
 
@@ -372,12 +383,12 @@ public class XViewerCustomMenu {
       TreeColumn insertTreeCol = xViewer.getRightClickSelectedColumn();
       XViewerColumn insertXCol = (XViewerColumn) insertTreeCol.getData();
       XCheckFilteredTreeDialog dialog =
-         new XCheckFilteredTreeDialog("", XViewerText.get("dialog.add_column.prompt", insertXCol.getName(),
+         new XCheckFilteredTreeDialog("", XViewerText.get("dialog.add_column.prompt", insertXCol.getName(), //$NON-NLS-1$ //$NON-NLS-2$
             insertXCol.getId()), patternFilter, new ArrayTreeContentProvider(), new XViewerColumnLabelProvider(),
             new XViewerColumnSorter());
       Collection<XViewerComputedColumn> computedCols = xViewer.getComputedColumns(insertXCol);
       if (computedCols.isEmpty()) {
-         XViewerLib.popup("ERROR", XViewerText.get("error.no_computed"));
+         XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_computed")); //$NON-NLS-1$ //$NON-NLS-2$
          return;
       }
       dialog.setInput(computedCols);
@@ -414,7 +425,7 @@ public class XViewerCustomMenu {
          items = xViewer.getTree().getItems();
       }
       if (items.length == 0) {
-         XViewerLib.popup("ERROR", XViewerText.get("error.no_items.sum"));
+         XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_items.sum")); //$NON-NLS-1$ //$NON-NLS-2$
          return;
       }
       Set<String> values = new HashSet<String>();
@@ -425,8 +436,8 @@ public class XViewerCustomMenu {
             }
          }
       }
-      String html = HtmlUtil.simplePage(HtmlUtil.textToHtml(CollectionsUtil.toString("\n", values)));
-      new HtmlDialog(XViewerText.get("dialog.unique.title"), XViewerText.get("dialog.unique.prompt", xCol.getName()),
+      String html = HtmlUtil.simplePage(HtmlUtil.textToHtml(CollectionsUtil.toString("\n", values))); //$NON-NLS-1$
+      new HtmlDialog(XViewerText.get("dialog.unique.title"), XViewerText.get("dialog.unique.prompt", xCol.getName()), //$NON-NLS-1$ //$NON-NLS-2$
          html).open();
    }
 
@@ -442,7 +453,7 @@ public class XViewerCustomMenu {
          items = xViewer.getTree().getItems();
       }
       if (items.length == 0) {
-         XViewerLib.popup("ERROR", XViewerText.get("error.no_items.sum"));
+         XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_items.sum")); //$NON-NLS-1$ //$NON-NLS-2$
          return;
       }
       List<String> values = new ArrayList<String>();
@@ -453,7 +464,7 @@ public class XViewerCustomMenu {
             }
          }
       }
-      XViewerLib.popup("Sum", xCol.sumValues(values));
+      XViewerLib.popup(XViewerText.get("menu.sum.prompt"), xCol.sumValues(values)); //$NON-NLS-1$
    }
 
    protected void handleHideColumn() {
@@ -475,86 +486,86 @@ public class XViewerCustomMenu {
    }
 
    protected void setupActions() {
-      showColumn = new Action(XViewerText.get("menu.show")) {
-         @Override
-         public void run() {
-            handleShowColumn();
-         }
-      };
-      addComputedColumn = new Action(XViewerText.get("menu.add")) {
-         @Override
-         public void run() {
-            handleAddComputedColumn();
-         }
-      };
-      sumColumn = new Action(XViewerText.get("menu.sum")) {
-         @Override
-         public void run() {
-            handleSumColumn();
-         }
-      };
-      uniqueValues = new Action(XViewerText.get("menu.unique")) {
-         @Override
-         public void run() {
-            handleUniqeValuesColumn();
-         }
-      };
-      hideColumn = new Action(XViewerText.get("menu.hide")) {
-         @Override
-         public void run() {
-            handleHideColumn();
-         }
-      };
-      removeSelected = new Action(XViewerText.get("menu.remove_selected")) {
-         @Override
-         public void run() {
-            performRemoveSelectedRows();
-         }
-      };
-      removeNonSelected = new Action(XViewerText.get("menu.remove_non_selected")) {
-         @Override
-         public void run() {
-            performRemoveNonSelectedRows();
-         }
-      };
-      copySelected = new Action(XViewerText.get("menu.copy_row")) {
-         @Override
-         public void run() {
-            performCopy();
-         }
-      };
+      showColumn = new Action(XViewerText.get("menu.show")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               handleShowColumn();
+            }
+         };
+      addComputedColumn = new Action(XViewerText.get("menu.add")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               handleAddComputedColumn();
+            }
+         };
+      sumColumn = new Action(XViewerText.get("menu.sum")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               handleSumColumn();
+            }
+         };
+      uniqueValues = new Action(XViewerText.get("menu.unique")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               handleUniqeValuesColumn();
+            }
+         };
+      hideColumn = new Action(XViewerText.get("menu.hide")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               handleHideColumn();
+            }
+         };
+      removeSelected = new Action(XViewerText.get("menu.remove_selected")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               performRemoveSelectedRows();
+            }
+         };
+      removeNonSelected = new Action(XViewerText.get("menu.remove_non_selected")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               performRemoveNonSelectedRows();
+            }
+         };
+      copySelected = new Action(XViewerText.get("menu.copy_row")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               performCopy();
+            }
+         };
       viewSelectedCell = new ViewSelectedCellDataAction(xViewer, null, Option.View);
       copySelectedCell = new ViewSelectedCellDataAction(xViewer, clipboard, Option.Copy);
-      copySelectedColumnCells = new Action(XViewerText.get("menu.copy_column")) {
-         @Override
-         public void run() {
-            performCopyColumnCells();
+      copySelectedColumnCells = new Action(XViewerText.get("menu.copy_column")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               performCopyColumnCells();
+            };
          };
-      };
-      clearAllSorting = new Action(XViewerText.get("menu.clear_sorts")) {
-         @Override
-         public void run() {
-            xViewer.getCustomizeMgr().clearSorter();
-         }
-      };
-      clearAllFilters = new Action(XViewerText.get("menu.clear_filters")) {
-         @Override
-         public void run() {
-            xViewer.getCustomizeMgr().clearFilters();
-         }
-      };
-      filterByColumn = new Action(XViewerText.get("menu.column_filter")) {
-         @Override
-         public void run() {
-            performFilterByColumn();
-         }
-      };
-      filterByValue = new Action(XViewerText.get("menu.value_filter")) {
-         @Override
-         public void run() {
-            performFilterByValue();
-         }
-      };
+      clearAllSorting = new Action(XViewerText.get("menu.clear_sorts")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               xViewer.getCustomizeMgr().clearSorter();
+            }
+         };
+      clearAllFilters = new Action(XViewerText.get("menu.clear_filters")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               xViewer.getCustomizeMgr().clearFilters();
+            }
+         };
+      filterByColumn = new Action(XViewerText.get("menu.column_filter")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               performFilterByColumn();
+            }
+         };
+      filterByValue = new Action(XViewerText.get("menu.value_filter")) { //$NON-NLS-1$
+            @Override
+            public void run() {
+               performFilterByValue();
+            }
+         };
       tableProperties = new TableCustomizationAction(xViewer);
       viewTableReport = new ViewTableReportAction(xViewer);
       columnMultiEdit = new ColumnMultiEditAction(xViewer);
@@ -570,6 +581,10 @@ public class XViewerCustomMenu {
       public void keyReleased(KeyEvent e) {
          if (e.keyCode == 'c' && e.stateMask == (SWT.CONTROL | SWT.SHIFT)) {
             performCopyColumnCells();
+         } else if (e.keyCode == 'b' && e.stateMask == (SWT.CONTROL | SWT.SHIFT)) {
+            performViewOrCopyCell(Option.Copy);
+         } else if (e.keyCode == 'v' && e.stateMask == (SWT.CONTROL | SWT.SHIFT)) {
+            performViewOrCopyCell(Option.View);
          } else if (e.keyCode == 'c' && e.stateMask == SWT.CONTROL) {
             performCopy();
          }
@@ -580,7 +595,7 @@ public class XViewerCustomMenu {
       try {
          TreeItem[] items = xViewer.getTree().getSelection();
          if (items.length == 0) {
-            XViewerLib.popup("ERROR", XViewerText.get("error.no_items"));
+            XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_items")); //$NON-NLS-1$ //$NON-NLS-2$
             return;
          }
          Set<Object> objs = new HashSet<Object>();
@@ -597,14 +612,14 @@ public class XViewerCustomMenu {
       try {
          TreeItem[] items = xViewer.getTree().getSelection();
          if (items.length == 0) {
-            XViewerLib.popup("ERROR", XViewerText.get("error.no_items"));
+            XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_items")); //$NON-NLS-1$ //$NON-NLS-2$
             return;
          }
          Set<Object> keepObjects = new HashSet<Object>();
          for (TreeItem item : items) {
             keepObjects.add(item.getData());
          }
-         xViewer.load(keepObjects);
+         xViewer.setInputXViewer(keepObjects);
       } catch (Exception ex) {
          XViewerLog.logAndPopup(Activator.class, Level.SEVERE, ex);
       }
@@ -627,7 +642,7 @@ public class XViewerCustomMenu {
          }
       }
       if (visibleColumns.isEmpty()) {
-         XViewerLib.popup("ERROR", XViewerText.get("error.no_columns"));
+         XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_columns")); //$NON-NLS-1$ //$NON-NLS-2$
          return;
       }
       ListDialog ld = new ListDialog(xViewer.getTree().getShell()) {
@@ -638,11 +653,11 @@ public class XViewerCustomMenu {
             return control;
          }
       };
-      ld.setMessage(XViewerText.get("dialog.column_filter.title"));
+      ld.setMessage(XViewerText.get("dialog.column_filter.title")); //$NON-NLS-1$
       ld.setInput(visibleColumns);
       ld.setLabelProvider(treeColumnLabelProvider);
       ld.setContentProvider(new ArrayContentProvider());
-      ld.setTitle(XViewerText.get("dialog.column_filter.title"));
+      ld.setTitle(XViewerText.get("dialog.column_filter.title")); //$NON-NLS-1$
       int result = ld.open();
       if (result != 0) {
          return;
@@ -657,7 +672,7 @@ public class XViewerCustomMenu {
       Set<TreeColumn> visibleColumns = new HashSet<TreeColumn>();
       TreeItem[] items = xViewer.getTree().getSelection();
       if (items.length == 0) {
-         XViewerLib.popup("ERROR", XViewerText.get("error.no_selection"));
+         XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_selection")); //$NON-NLS-1$ //$NON-NLS-2$
          return;
       }
       ArrayList<String> textTransferData = new ArrayList<String>();
@@ -668,7 +683,7 @@ public class XViewerCustomMenu {
          }
       }
       if (visibleColumns.isEmpty()) {
-         XViewerLib.popup("ERROR", XViewerText.get("error.no_columns"));
+         XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_columns")); //$NON-NLS-1$ //$NON-NLS-2$
          return;
       }
       ListDialog ld = new ListDialog(xViewer.getTree().getShell()) {
@@ -679,11 +694,11 @@ public class XViewerCustomMenu {
             return control;
          }
       };
-      ld.setMessage(XViewerText.get("dialog.copy_column.title"));
+      ld.setMessage(XViewerText.get("dialog.copy_column.title")); //$NON-NLS-1$
       ld.setInput(visibleColumns);
       ld.setLabelProvider(treeColumnLabelProvider);
       ld.setContentProvider(new ArrayContentProvider());
-      ld.setTitle(XViewerText.get("dialog.copy_column.title"));
+      ld.setTitle(XViewerText.get("dialog.copy_column.title")); //$NON-NLS-1$
       int result = ld.open();
       if (result != 0) {
          return;
@@ -694,14 +709,14 @@ public class XViewerCustomMenu {
          for (int x = 0; x < xViewer.getTree().getColumnCount(); x++) {
             if (xViewer.getTree().getColumn(x).equals(treeCol)) {
                sb.append(labelProv.getColumnText(item.getData(), x));
-               sb.append("\n");
+               sb.append("\n"); //$NON-NLS-1$
             }
          }
       }
       textTransferData.add(sb.toString());
 
       if (textTransferData.size() > 0) {
-         clipboard.setContents(new Object[] {CollectionsUtil.toString(textTransferData, null, ", ", null)},
+         clipboard.setContents(new Object[] {CollectionsUtil.toString(textTransferData, null, ", ", null)}, //$NON-NLS-1$
             new Transfer[] {TextTransfer.getInstance()});
       }
    }
@@ -709,7 +724,7 @@ public class XViewerCustomMenu {
    private void performCopy() {
       TreeItem[] items = xViewer.getTree().getSelection();
       if (items.length == 0) {
-         XViewerLib.popup("ERROR", XViewerText.get("error.no_items"));
+         XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_items")); //$NON-NLS-1$ //$NON-NLS-2$
          return;
       }
       ArrayList<String> textTransferData = new ArrayList<String>();
@@ -726,15 +741,36 @@ public class XViewerCustomMenu {
                   }
                }
             }
-            sb.append(CollectionsUtil.toString("\t", strs));
-            sb.append("\n");
+            sb.append(CollectionsUtil.toString("\t", strs)); //$NON-NLS-1$
+            sb.append("\n"); //$NON-NLS-1$
          }
          textTransferData.add(sb.toString());
 
          if (textTransferData.size() > 0) {
-            clipboard.setContents(new Object[] {CollectionsUtil.toString(textTransferData, null, ", ", null)},
+            clipboard.setContents(new Object[] {CollectionsUtil.toString(textTransferData, null, ", ", null)}, //$NON-NLS-1$
                new Transfer[] {TextTransfer.getInstance()});
          }
+      }
+   }
+
+   private void performViewOrCopyCell(Option option) {
+      try {
+         MouseEvent event = xViewer.getMouseListener().getLeftClickEvent();
+         TreeItem item = xViewer.getItemUnderMouseClick(new Point(event.x, event.y));
+         TreeColumn column = xViewer.getColumnUnderMouseClick(new Point(event.x, event.y));
+         if (item != null && column != null) {
+            int columnNum = 0;
+            for (int x = 0; x < xViewer.getTree().getColumnCount(); x++) {
+               if (xViewer.getTree().getColumn(x).equals(column)) {
+                  columnNum = x;
+                  break;
+               }
+            }
+            ViewSelectedCellDataAction action = new ViewSelectedCellDataAction(xViewer, clipboard, option);
+            action.run(column, item, columnNum);
+         }
+      } catch (Exception ex) {
+         // do nothing
       }
    }
 
@@ -744,7 +780,7 @@ public class XViewerCustomMenu {
          if (element instanceof TreeColumn) {
             return ((TreeColumn) element).getText();
          }
-         return XViewerText.get("error.unknown_element");
+         return XViewerText.get("error.unknown_element"); //$NON-NLS-1$
       }
    };
 

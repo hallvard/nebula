@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    emil.crumhorn@gmail.com - initial API and implementation
+ *    ziogiannigmail.com - Bug 464509 - Minute View Implementation
  *******************************************************************************/
 
 package org.eclipse.nebula.widgets.ganttchart;
@@ -47,10 +48,12 @@ public abstract class AbstractPaintManager implements IPaintManager {
             if (oobLeft || oobRight) {
                 if (!oobLeft || !oobRight) { //NOPMD
                     if (oobLeft) {
-                        // left side out of bounds
+                    	if (ganttComposite.getCurrentView() != ISettings.VIEW_MINUTE) {//Control added since this part was leading a deadlock with minute_view
+                        // left side out of bounds 
                         gc.drawLine(xLoc, y, xLoc + eventWidth, y);
                         gc.drawLine(xLoc + eventWidth, y, xLoc + eventWidth, y + event.getHeight());
                         gc.drawLine(xLoc, y + event.getHeight(), xLoc + eventWidth, y + event.getHeight());
+                    	}
                     } else {
                         // right side out of bounds
                         gc.drawLine(xLoc, y, bounds.width, y);
@@ -402,8 +405,10 @@ public abstract class AbstractPaintManager implements IPaintManager {
                 textXStart = x - textSpacer - toDrawExtent.x;
                 break;
             case SWT.CENTER:
+            	if (!settings.shiftHorizontalCenteredEventString() || toDrawExtent.x < eventWidth) {
                 textXStart = x + (eventWidth / 2) - (toDrawExtent.x / 2);
                 break;
+            	}
             case SWT.RIGHT:
                 //textXStart = x + eventWidth + textSpacer;
             	int eventOrPictureWidth = eventWidth;
@@ -552,6 +557,9 @@ public abstract class AbstractPaintManager implements IPaintManager {
         } else {
             // center it x-wise
             x -= (bounds.width - dayWidth) / 2;
+            if (settings.getEventHeight() > bounds.height) {
+            	y += (settings.getEventHeight() - bounds.height);
+            }
         }
 
         gc.drawImage(image, x, y);

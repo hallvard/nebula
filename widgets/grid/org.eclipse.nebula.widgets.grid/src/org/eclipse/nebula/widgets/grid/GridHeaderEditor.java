@@ -46,7 +46,7 @@ class GridHeaderEditor extends ControlEditor {
 
 	/**
 	 * Creates a TableEditor for the specified Table.
-	 * 
+	 *
 	 * @param column
 	 *            the Table Control above which this editor will be displayed
 	 */
@@ -58,12 +58,13 @@ class GridHeaderEditor extends ControlEditor {
 
 		columnListener = new ControlListener() {
 			public void controlMoved(ControlEvent e) {
-				table.getDisplay().asyncExec(new Runnable() {
+				layout();
+				e.display.asyncExec(new Runnable() {
 
+					@Override
 					public void run() {
 						layout();
 					}
-
 				});
 			}
 
@@ -141,7 +142,7 @@ class GridHeaderEditor extends ControlEditor {
 
 	/**
 	 * Returns the bounds of the editor.
-	 * 
+	 *
 	 * @return bounds of the editor.
 	 */
 	protected Rectangle internalComputeBounds() {
@@ -185,7 +186,7 @@ class GridHeaderEditor extends ControlEditor {
 	/**
 	 * Sets the zero based index of the column of the cell being tracked by this
 	 * editor.
-	 * 
+	 *
 	 * @param column
 	 *            the zero based index of the column of the cell being tracked
 	 *            by this editor

@@ -11,13 +11,16 @@
 package org.eclipse.nebula.widgets.xviewer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.nebula.widgets.xviewer.customize.CustomizeData;
 import org.eclipse.nebula.widgets.xviewer.customize.IXViewerCustomizations;
 import org.eclipse.nebula.widgets.xviewer.customize.XViewerCustomMenu;
 import org.eclipse.nebula.widgets.xviewer.customize.XViewerCustomizations;
+import org.eclipse.nebula.widgets.xviewer.customize.dialog.XViewerCustomizeDialog;
 
 /**
  * @author Donald G. Dunne
@@ -35,6 +38,12 @@ public abstract class XViewerFactory implements IXViewerFactory {
 
    public XViewerFactory(String namespace) {
       this.namespace = namespace;
+   }
+
+   public void registerColumns(Collection<? extends XViewerColumn> columns) {
+      for (XViewerColumn col : columns) {
+         registerColumns(col);
+      }
    }
 
    public void registerColumns(XViewerColumn... columns) {
@@ -143,6 +152,11 @@ public abstract class XViewerFactory implements IXViewerFactory {
    @Override
    public boolean isSearhTop() {
       return false;
+   }
+
+   @Override
+   public Dialog getCustomizeDialog(XViewer xViewer) {
+      return new XViewerCustomizeDialog(xViewer);
    }
 
 }

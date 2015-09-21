@@ -27,8 +27,6 @@ class HorizontalScrollbarHandler implements Listener {
 	private boolean				_scrolling;
 	private int					_lastScrollbarPosition;
 
-	private ViewPortHandler		_vpHandler;
-
 	private boolean				_infinite;
 	private boolean				_none;
 	private boolean				_fixed;
@@ -37,7 +35,6 @@ class HorizontalScrollbarHandler implements Listener {
 
 	public HorizontalScrollbarHandler(GanttComposite parent, ScrollBar scrollBar, int style) {
 		_gc = parent;
-		_vpHandler = _gc.getViewPortHandler();
 		_scrollBar = scrollBar;
 
 		if ((style & GanttFlags.H_SCROLL_FIXED_RANGE) != 0) {
@@ -144,10 +141,10 @@ class HorizontalScrollbarHandler implements Listener {
 
 	private void scrollViewportByOffset(int direction, int diff) {
 		if (direction == SWT.LEFT) {
-			_vpHandler.scrollingLeft(diff);
+			_gc.getViewPortHandler().scrollingLeft(diff);
 		}
 		else {
-			_vpHandler.scrollingRight(diff);
+			_gc.getViewPortHandler().scrollingRight(diff);
 		}
 	}
 
@@ -194,7 +191,13 @@ class HorizontalScrollbarHandler implements Listener {
 			int rangeBonus = 0;
 
 			// take sections into account
-			int gSectionWidth = _gc.getSettings().getSectionBarWidth();
+			int gSectionWidth = 0;
+			if (_gc.getSettings().drawSectionBar()) {
+				gSectionWidth += _gc.getSettings().getSectionBarWidth();
+			}
+			if (_gc.getSettings().drawSectionDetails()) {
+				gSectionWidth += _gc.getSettings().getSectionDetailWidth();
+			}
 			if (_gc.isShowingGanttSections()) {			
 				if (_gc.getSettings().getSectionSide() == SWT.LEFT) {
 					xStart = gSectionWidth;

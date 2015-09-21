@@ -12,6 +12,7 @@
 package org.eclipse.nebula.widgets.ganttchart.themes;
 
 import org.eclipse.nebula.widgets.ganttchart.ColorCache;
+import org.eclipse.nebula.widgets.ganttchart.GanttSection;
 import org.eclipse.nebula.widgets.ganttchart.IColorManager;
 import org.eclipse.swt.graphics.Color;
 
@@ -144,6 +145,14 @@ public class ColorThemeWindowsBlue implements IColorManager {
 	}
 
 	public Color getSundayBackgroundColorBottom() {
+		return getSaturdayBackgroundColorBottom();
+	}
+		
+	public Color getHolidayBackgroundColorTop() {
+		return getSaturdayBackgroundColorTop();
+	}
+
+	public Color getHolidayBackgroundColorBottom() {
 		return getSaturdayBackgroundColorBottom();
 	}
 		
@@ -323,5 +332,21 @@ public class ColorThemeWindowsBlue implements IColorManager {
     public Color getVerticalInsertMarkerColor() {   
         return getOriginalLocationColor();
     }
+
+	public Color getPeriodLineColor() {
+        return ColorCache.getColor(255, 0, 0);
+	}
+
+	public Color getSectionDetailAreaForegroundColor(GanttSection section) {
+		return getWeekdayBackgroundColorTop();
+	}
+	
+	public Color getSectionDetailAreaBackgroundColor(GanttSection section) {
+		return getWeekdayBackgroundColorBottom();
+	}
+	
+	public boolean drawSectionDetailGradientTopDown() {
+		return true;
+	}
 
 }

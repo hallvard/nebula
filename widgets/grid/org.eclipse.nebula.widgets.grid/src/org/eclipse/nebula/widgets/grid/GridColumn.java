@@ -14,6 +14,7 @@
  *    Benjamin Bortfeldt<bbortfeldt@gmail.com> - new tooltip support in 300797
  *    Thomas Halm <thha@fernbach.com> - bugfix in 315397
  *    Cserveny Tamas <cserveny.tamas@gmail.com> - bugfix in 318984
+ *    Mirko Paturzo <mirko.paturzo@exeura.eu> - bugfix in 248388
  *******************************************************************************/
 package org.eclipse.nebula.widgets.grid;
 
@@ -76,6 +77,31 @@ public class GridColumn extends Item {
 	 * Cell renderer.
 	 */
 	private GridCellRenderer cellRenderer = new DefaultCellRenderer();
+
+	private static int NOT_CALCULATED_YET = -1;
+
+	/**
+	 * Caching of footerHeight
+	 */
+	private int footerHeight = NOT_CALCULATED_YET;
+
+	private int headerHeight = NOT_CALCULATED_YET;
+
+	int getFooterHeight(GC gc)
+	{
+		if(footerHeight == NOT_CALCULATED_YET) {
+			footerHeight = getFooterRenderer().computeSize(gc, getWidth(), SWT.DEFAULT, this).y;
+		}
+		return footerHeight;
+	}
+
+	int getHeaderHeight(GC gc)
+	{
+		if(headerHeight == NOT_CALCULATED_YET) {
+			headerHeight = getHeaderRenderer().computeSize(gc, getWidth(), SWT.DEFAULT, this).y;
+		}
+		return headerHeight;
+	}
 
 	/**
 	 * Width of column.
@@ -257,6 +283,7 @@ public class GridColumn extends Item {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void dispose() {
 		if (!parent.isDisposing()) {
 			parent.removeColumn(this);
@@ -268,6 +295,17 @@ public class GridColumn extends Item {
 				}
 		}
 
+        if(cellRenderer != null)
+        {
+        	cellRenderer.setDisplay(null);
+        	cellRenderer = null;
+        }
+
+        if(headerRenderer != null)
+        {
+        	headerRenderer.setDisplay(null);
+        	headerRenderer = null;
+        }
 
 		super.dispose();
 	}
@@ -366,6 +404,9 @@ public class GridColumn extends Item {
 			parent.setScrollValuesObsolete();
 			parent.redraw();
 		}
+		parent.handlePacked(this);
+		footerHeight = NOT_CALCULATED_YET;
+		headerHeight = NOT_CALCULATED_YET;
 	}
 
 	/**
@@ -569,13 +610,42 @@ public class GridColumn extends Item {
 		GC gc = new GC(parent);
 		int newWidth = getHeaderRenderer().computeSize(gc, SWT.DEFAULT,
 				SWT.DEFAULT, this).x;
-		GridItem[] items = parent.getItems();
-		for (int i = 0; i < items.length; i++) {
-			GridItem item = items[i];
-			if (item.isVisible()) {
-				getCellRenderer().setColumn(parent.indexOf(this));
-				newWidth = Math.max(newWidth, getCellRenderer().computeSize(gc,
-						SWT.DEFAULT, SWT.DEFAULT, item).x);
+
+		getCellRenderer().setColumn(parent.indexOf(this));
+		final boolean virtual = (getParent().getStyle() & SWT.VIRTUAL) != 0;
+		final int bottomIndex = getParent().getBottomIndex() + 1;
+		final int topIndex = getParent().getTopIndex();
+		if (parent.isVisibleLinesColumnPack())
+		{
+			for (int i = topIndex; i < bottomIndex; i++)
+			{
+				GridItem item = parent.getItem(i);
+				if (item.isVisible())
+				{
+					newWidth = Math.max(newWidth, getCellRenderer().computeSize(gc, SWT.DEFAULT, SWT.DEFAULT, item).x);
+					if (virtual && (i > bottomIndex || i < topIndex))
+					{
+						getParent().getDataVisualizer().clearRow(item);
+						item.setHasSetData(false);
+					}
+				}
+			}
+
+		}
+		else
+		{
+			for (int i = 0; i < parent.getItemCount(); i++)
+			{
+				GridItem item = parent.getItem(i);
+				if (item.isVisible())
+				{
+					newWidth = Math.max(newWidth, getCellRenderer().computeSize(gc, SWT.DEFAULT, SWT.DEFAULT, item).x);
+					if (virtual && (i > bottomIndex || i < topIndex))
+					{
+						getParent().getDataVisualizer().clearRow(item);
+						item.setHasSetData(false);
+					}
+				}
 			}
 		}
 		gc.dispose();
@@ -1197,6 +1267,7 @@ public class GridColumn extends Item {
 			// a later one needs more space
 			control.getDisplay().asyncExec(new Runnable() {
 
+				@Override
 				public void run() {
 					if (GridColumn.this.controlEditor != null
 							&& GridColumn.this.controlEditor.getEditor() != null) {

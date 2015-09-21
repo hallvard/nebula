@@ -491,4 +491,38 @@ public interface IColorManager extends IFillBackgroundColors {
 	 * @return Color
 	 */
 	Color getVerticalInsertMarkerColor();
+	
+	/**
+	 * The color used for drawing the vertical period start and end line that shows where the period
+	 * start and end dates are.
+	 * 
+	 * @return Color
+	 */
+	Color getPeriodLineColor();
+
+	/**
+	 * The foreground color used to draw the gradient background of the section detail area
+	 * of the given GanttSection. This way it is possible to implement highlighting in the
+	 * detail area based on the set data value.
+	 * @param section The GanttSection for which the foreground color is requested.
+	 * @return Color
+	 */
+	Color getSectionDetailAreaForegroundColor(GanttSection section);
+
+	/**
+	 * The background color used to draw the gradient background of the section detail area
+	 * of the given GanttSection. This way it is possible to implement highlighting in the
+	 * detail area based on the set data value.
+	 * @param section The GanttSection for which the background color is requested.
+	 * @return Color
+	 */
+	Color getSectionDetailAreaBackgroundColor(GanttSection section);
+	
+	/**
+	 * Specify the direction of the gradient background of the section detail area.
+	 * 
+	 * @return <code>true</code> if the gradient should sweep from top to bottom, 
+	 * 			else sweeps from left to right
+	 */
+	boolean drawSectionDetailGradientTopDown();
 }

@@ -137,4 +137,47 @@ public interface ILanguageManager {
 	 * @return Text
 	 */
 	String getNotAvailableText();
+	
+	/**
+	 * The menu item text for the "Add event" menu item
+	 * 
+	 * @return Text
+	 */
+	String getAddEventMenuText();
+	
+	/**
+	 * The default text for new created events
+	 * 
+	 * @return Text
+	 */
+	String getNewEventDefaultText();
+	
+	/**
+	 * The default text of the print job
+	 * 
+	 * @return Text
+	 */
+	String getPrintJobText();
+	
+	/**
+	 * The default text for the page prefix in the print footer
+	 * 
+	 * @return Text
+	 */
+	String getPrintPageText();
+	
+	/**
+	 * The default text that gets rendered before the plus icon
+	 * in the section detail area.
+	 * 
+	 * @return Text
+	 */
+	String getSectionDetailMoreText();
+	
+	/**
+	 * The default text that gets rendered in the Tooltip for Holidays
+	 * 
+	 * @return Text
+	 */
+	String getHolidayText();
 }

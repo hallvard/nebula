@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    emil.crumhorn@gmail.com - initial API and implementation
+ *    ziogiannigmail.com - Bug 462855 - Zoom Minimum Depth increased up to 6 levels deeper than initial implementation (-6,-5,-4,-3,-2,-1)
  *******************************************************************************/
 
 package org.eclipse.nebula.widgets.ganttchart;
@@ -23,6 +24,8 @@ import org.eclipse.swt.graphics.Image;
 /**
  * This interface lets you define various settings for the GanttChart. It's highly advisable that for implementation, {@link AbstractSettings} is extended 
  * and methods needed to be changed from their defaults are overridden and changed. It would be quite a hassle to implement a full ISettings interface from scratch.
+ * In order to preserve binary compatibility, after the MinuteView implementation, this interface has been extended by {@link ISettings2}
+ * Please refer both to {@link ISettings} and {@link ISettings2} for any setting change.
  * <pre>
  * public class MySettings extends AbstractSettings {
  * 	// override your methods here
@@ -31,7 +34,7 @@ import org.eclipse.swt.graphics.Image;
  * <p />
  * Once you've overridden the settings you wish to change, simply pass an instance of your implementation class to the constructor of GanttChart: {@link GanttChart#GanttChart(org.eclipse.swt.widgets.Composite, int, ISettings)}
  *  
- * @author Emil Crumhorn
+ * @author Emil Crumhorn and Giovanni Cimmino
  *
  */
 public interface ISettings {
@@ -67,6 +70,8 @@ public interface ISettings {
     public static final int DEFAULT_CONNECTION_ARROW       = CONNECTION_ARROW_RIGHT_TO_LEFT;
 
     // gantt view mode
+    
+    public static final int VIEW_MINUTE					   = 0;
     public static final int VIEW_DAY                       = 1;
     public static final int VIEW_WEEK                      = 2;
     public static final int VIEW_MONTH                     = 3;
@@ -74,7 +79,13 @@ public interface ISettings {
     public static final int VIEW_D_DAY                     = 5;
 
     // zoom levels
-    public static final int MIN_ZOOM_LEVEL                 = 0;
+    public static final int MIN_ZOOM_LEVEL                 = -6;
+    public static final int ZOOM_SECONDS_MAX      	       = -6;
+    public static final int ZOOM_SECONDS_MEDIUM      	   = -5;
+    public static final int ZOOM_SECONDS_NORMAL      	   = -4;
+    public static final int ZOOM_MINUTES_MAX      	       = -3;
+    public static final int ZOOM_MINUTES_MEDIUM      	   = -2;
+    public static final int ZOOM_MINUTES_NORMAL      	   = -1;
     public static final int ZOOM_HOURS_MAX                 = 0;
     public static final int ZOOM_HOURS_MEDIUM              = 1;
     public static final int ZOOM_HOURS_NORMAL              = 2;
@@ -92,6 +103,8 @@ public interface ISettings {
     //public static final int ZOOM_YEAR_SMALLER              = 14;
     //public static final int ZOOM_YEAR_SMALLEST             = 15;
     public static final int MAX_ZOOM_LEVEL                 = 13;
+
+	
 
     /**
      * The date format to use when displaying dates in string format.
@@ -179,6 +192,12 @@ public interface ISettings {
     /**
      * What initial zoom level is used when the chart is initially drawn. Options are:
      * <ul>
+     * <li>{@link #ZOOM_SECONDS_MAX}
+     * <li>{@link #ZOOM_SECONDS_MEDIUM}
+     * <li>{@link #ZOOM_SECONDS_NORMAL}
+     * <li>{@link #ZOOM_MINUTES_MAX}
+     * <li>{@link #ZOOM_MINUTES_MEDIUM}
+     * <li>{@link #ZOOM_MINUTES_NORMAL}
      * <li>{@link #ZOOM_HOURS_MAX}
      * <li>{@link #ZOOM_HOURS_MEDIUM}
      * <li>{@link #ZOOM_HOURS_NORMAL}
@@ -222,6 +241,14 @@ public interface ISettings {
      */
     public boolean showToolTips();
 
+    /**
+     * Returns the custom tool tip generator which generates the tooltip
+     * out of custom data for a GanttEvent.
+     * 
+     * @return
+     */
+    public IToolTipContentReplacer getToolTipContentReplacer();
+    
     /**
      * Whether to show date tooltips when events are moved or resized.
      * 
@@ -1076,4 +1103,146 @@ public interface ISettings {
      * @return true to scroll chart vertically. Default is true.
      */
     public boolean scrollChartVerticallyOnMouseWheel();
+    
+    /**
+     * Returns the minimum zoom level.
+     * Default should return {@link ISettings#MIN_ZOOM_LEVEL}
+     * @return
+     */
+    public int getMinZoomLevel();
+    
+    /**
+     * Specify a period start. Returning another value than <code>null</code> will result in rendering
+     * an additional line to the chart indicating a period start in the gantt itself.
+     * 
+     * @return
+     */
+    public Calendar getPeriodStart();
+    
+    /**
+     * Specify a period end. Returning another value than <code>null</code> will result in rendering
+     * an additional line to the chart indicating a period end in the gantt itself.
+     * 
+     * @return
+     */
+    public Calendar getPeriodEnd();
+    
+    /**
+     * If you want to show the event String within the event rectangle by setting the horizontalTextLocation of
+     * the GanttEvent to SWT.CENTER, there are cases that break the visualization. If your event String is longer
+     * than the event in the Gantt, it will look quite strange.
+     * <p>
+     * If this method returns <code>true</code>, the AbstractPaintManager will shift the rendering of the event
+     * String to the right if the String length is greater than the event rectangle.
+     * @return <code>true</code> if the event String should be shifted, <code>false</code> if not
+     */
+    public boolean shiftHorizontalCenteredEventString();
+    
+    /**
+     * @return <code>true</code> to enable the menu action for adding an event to the GanttChart,
+     * 			<code>false</code> if this action should not be available to the user.
+     */
+    public boolean enableAddEvent();
+    
+    /**
+     * Global configuration to specify if the text of GanttEvents should be rendered or not.
+     * It is also possible to configure this per GanttEvent via _showText property.
+     * @return <code>true</code> if the event text should be rendered, <code>false</code>
+     * 			if not.
+     */
+    public boolean drawEventString();
+    
+    /**
+     * The default behaviour in GanttChart on moving an event is that only the current dragged
+     * event is moved unless you press the SHIFT key. If there are more events selected, still 
+     * only the dragged one is moved if the SHIFT key is not pressed.
+     * With this configuration it is possible to specify if the old default behavior should be 
+     * used or if all currently selected events should be moved even if the SHIFT key is not pressed.
+     * @return <code>true</code> if all selected events should be moved by dragging on of them
+     * 			<code>false</code> if only the current dragged event should be moved.
+     */
+    public boolean alwaysDragAllEvents();
+    
+    /**
+     * On printing a GanttChart it is possible to select to print only the selected area.
+     * For GanttChart this means to print the currently visible area. By default currently
+     * visible means vertically AND horizontally visible. This configuration allows to 
+     * specify whether the vertical part should extend to the whole chart and only the
+     * horizontal area should be limited for the visible part.
+     * @return <code>true</code> if the printed chart should contain the whole chart
+     * 			vertically but only the horizontal visible part of the chart,
+     * 			<code>false</code> if only the visible part of the chart should be printed,
+     * 			horizontally AND vertically
+     */
+    public boolean printSelectedVerticallyComplete();
+    
+    /**
+     * Configure whether a footer should be added to the print pages or not.
+     * The footer contains the page number and the date when the print was
+     * requested.
+     * @return <code>true</code> if a footer should be added to the print pages,
+     * 			<code>false</code> if not
+     */
+    public boolean printFooter();
+    
+    /**
+     * Configure whether the section bar should be rendered. It only makes sense
+     * to not render the section bar if the section details are enabled.
+     * 
+     * @return <code>true</code> if the section bar should
+     * 			be rendered, <code>false</code> if not
+     */
+    public boolean drawSectionBar();
+    
+    /**
+     * Configure whether there should be an additional area to the section bar
+     * that shows additional section detail information.
+     * 
+     * @return <code>true</code> if additional section detail information should
+     * 			be rendered, <code>false</code> if not
+     */
+    public boolean drawSectionDetails();
+    
+    /**
+     * @return The width of the section detail area.
+     */
+    public int getSectionDetailWidth(); 
+
+    /**
+     * The section detail area title that should be rendered in the section detail area.
+     * 
+     * @return String or null. Default is a bold black text showing the section name.
+     */
+    public String getSectionDetailTitle();
+
+    /**
+     * The detail information that should be rendered in the section detail area.
+     * 
+     * @return String or null. Default is to show the number of events in that section.
+     */
+    public String getSectionDetailText();
+
+    /**
+     * Returns the custom section detail generator which generates the section detail
+     * out of custom data for a GanttSection.
+     * 
+     * @return
+     */
+    public ISectionDetailContentReplacer getSectionDetailContentReplacer();
+
+    /**
+     * 
+     * @return <code>true</code> if there should be a "more [+]" shown in the section
+     * 			detail area which allows to register a listener against to show more
+     * 			informations by e.g. opening a dialog.
+     */
+    public boolean showSectionDetailMore();
+    
+    /**
+     * Configure whether a tooltip pops up when hovering the mouse over a holiday 
+     * 
+     * @return <code>true</code> to show a "holiday" popup with the configured name of the holiday,
+     * 			<code>false</code> if not (default)
+     */
+    public boolean showHolidayToolTips();
 }

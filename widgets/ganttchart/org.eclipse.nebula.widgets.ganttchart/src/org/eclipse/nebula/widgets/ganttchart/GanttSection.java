@@ -36,6 +36,7 @@ import org.eclipse.swt.graphics.Rectangle;
  */
 public class GanttSection implements IFillBackgroundColors {
 
+    private Object             	  _data;
     private String                _name;
     private GanttComposite        _parent;
     private List                  _ganttEvents;
@@ -51,6 +52,8 @@ public class GanttSection implements IFillBackgroundColors {
     private Color                 _saturdayBgColorBottom;
     private Color                 _sundayBgColorTop;
     private Color                 _sundayBgColorBottom;
+    private Color                 _holidayBgColorTop;
+    private Color                 _holidayBgColorBottom;
     private Color                 _weekdayBgColorTop;
     private Color                 _weekdayBgColorBottom;
     private Color                 _selectedBgColorTop;
@@ -152,6 +155,24 @@ public class GanttSection implements IFillBackgroundColors {
     }
 
     /**
+     * Returns the currently set data object.
+     * 
+     * @return Data object
+     */
+    public Object getData() {
+        return _data;
+    }
+
+    /**
+     * Sets the current data object.
+     * 
+     * @param data Data object
+     */
+    public void setData(final Object data) {
+        this._data = data;
+    }
+
+    /**
      * Sets the name of this section. This method does not force a redraw.
      * 
      * @param name GanttSection name
@@ -222,6 +243,14 @@ public class GanttSection implements IFillBackgroundColors {
         return _sundayBgColorTop == null ? _fillColorManager.getSundayBackgroundColorTop() : _sundayBgColorTop;
     }
 
+    public Color getHolidayBackgroundColorBottom() {
+        return _holidayBgColorBottom == null ? _fillColorManager.getHolidayBackgroundColorBottom() : _holidayBgColorBottom;
+    }
+
+    public Color getHolidayBackgroundColorTop() {
+        return _holidayBgColorTop == null ? _fillColorManager.getHolidayBackgroundColorTop() : _holidayBgColorTop;
+    }
+
     public Color getWeekdayBackgroundColorBottom() {
         return _weekdayBgColorBottom == null ? _fillColorManager.getWeekdayBackgroundColorBottom() : _weekdayBgColorBottom;
     }
@@ -260,6 +289,14 @@ public class GanttSection implements IFillBackgroundColors {
 
     public void setSundayBackgroundColorBottom(final Color sundayBackgroundColorBottom) {
         _sundayBgColorBottom = sundayBackgroundColorBottom;
+    }
+
+    public void setHolidayBackgroundColorTop(final Color holidayBackgroundColorTop) {
+        _holidayBgColorTop = holidayBackgroundColorTop;
+    }
+
+    public void setHolidayBackgroundColorBottom(final Color holidayBackgroundColorBottom) {
+        _holidayBgColorBottom = holidayBackgroundColorBottom;
     }
 
     public void setWeekdayBackgroundColorTop(final Color weekdayBackgroundColorTop) {
@@ -322,6 +359,15 @@ public class GanttSection implements IFillBackgroundColors {
      */
     void setInheritBackgroud(final boolean inheritBackgroud) {
         _inheritBackgroud = inheritBackgroud;
+    }
+
+    /**
+     * Returns the parent {@link GanttComposite}
+     * 
+     * @return {@link GanttComposite}
+     */
+    public GanttComposite getParentComposite() {
+        return _parent;
     }
 
     /**

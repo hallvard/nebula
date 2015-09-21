@@ -153,6 +153,14 @@ public abstract class AbstractColorManager implements IColorManager {
 		return getSaturdayBackgroundColorBottom();
 	}
 		
+	public Color getHolidayBackgroundColorTop() {
+		return getSaturdayBackgroundColorTop();
+	}
+
+	public Color getHolidayBackgroundColorBottom() {
+		return getSaturdayBackgroundColorBottom();
+	}
+		
 	public Color getWeekdayTextColor() {
 		return getBlack();
 	}
@@ -321,4 +329,20 @@ public abstract class AbstractColorManager implements IColorManager {
     public Color getVerticalInsertMarkerColor() {	
         return getOriginalLocationColor();
     }
+    
+	public Color getPeriodLineColor() {
+        return ColorCache.getColor(255, 0, 0);
+	}
+
+	public Color getSectionDetailAreaForegroundColor(GanttSection section) {
+		return getWeekdayBackgroundColorTop();
+	}
+	
+	public Color getSectionDetailAreaBackgroundColor(GanttSection section) {
+		return getWeekdayBackgroundColorBottom();
+	}
+	
+	public boolean drawSectionDetailGradientTopDown() {
+		return true;
+	}
 }

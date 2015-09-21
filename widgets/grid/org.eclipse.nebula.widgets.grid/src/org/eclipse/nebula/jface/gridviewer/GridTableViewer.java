@@ -8,6 +8,7 @@
  * Contributors:
  *    rmcamara@us.ibm.com - initial API and implementation
  *    tom.schindl@bestsolution.at - various significant contributions
+ *    mirko.paturzo@exeura.eu - improve performance
  *******************************************************************************/
 
 package org.eclipse.nebula.jface.gridviewer;
@@ -25,14 +26,15 @@ import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerRow;
 import org.eclipse.nebula.jface.gridviewer.internal.CellSelection;
 import org.eclipse.nebula.jface.gridviewer.internal.SelectionWithFocusRow;
+import org.eclipse.nebula.widgets.grid.DataVisualizer;
 import org.eclipse.nebula.widgets.grid.Grid;
 import org.eclipse.nebula.widgets.grid.GridItem;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -51,10 +53,16 @@ import org.eclipse.swt.widgets.Widget;
  * ITreeContentProvider} interface. Instead a {@link GridTreeViewer} should be
  * used.
  * <p>
+ * 
+ * @author Unknown...
+ * @author Mirko Paturzo <mirko.paturzo@exeura.eu>
+ * 
+ * Mirko modified improve performace and reduce used memory
+ * fix memory leak and slow disposed object 
  */
 public class GridTableViewer extends AbstractTableViewer {
 	/** This viewer's grid control. */
-	private Grid grid;
+	private final Grid grid;
 
 	private GridViewerRow cachedRow;
 
@@ -78,6 +86,36 @@ public class GridTableViewer extends AbstractTableViewer {
 	 */
 	public GridTableViewer(Composite parent) {
 		this(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+	}
+
+	/**
+	 * Creates a grid viewer on a newly-created grid control under the given
+	 * parent. The grid control is created using the given SWT style bits. The
+	 * viewer has no input, no content provider, a default label provider, no
+	 * sorter, and no filters.
+	 * 
+	 * @param parent
+	 *            the parent control
+	 * @param style
+	 *            the SWT style bits used to create the grid.
+	 */
+	public GridTableViewer(DataVisualizer dataVisualizer, Composite parent, int style) {
+		this(new Grid(dataVisualizer, parent, style));
+	}
+
+	
+	/**
+	 * Creates a grid viewer on a newly-created grid control under the given
+	 * parent. The grid control is created using the SWT style bits
+	 * <code>MULTI, H_SCROLL, V_SCROLL,</code> and <code>BORDER</code>. The
+	 * viewer has no input, no content provider, a default label provider, no
+	 * sorter, and no filters.
+	 * 
+	 * @param parent
+	 *            the parent control
+	 */
+	public GridTableViewer(DataVisualizer dataVisualizer, Composite parent) {
+		this(dataVisualizer, parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 	}
 
 	/**
@@ -117,6 +155,7 @@ public class GridTableViewer extends AbstractTableViewer {
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected ViewerRow internalCreateNewRowPart(int style, int rowIndex) {
 		GridItem item;
 
@@ -130,6 +169,7 @@ public class GridTableViewer extends AbstractTableViewer {
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected ColumnViewerEditor createViewerEditor() {
 		return new GridViewerEditor(this,
 				new ColumnViewerEditorActivationStrategy(this),
@@ -137,81 +177,131 @@ public class GridTableViewer extends AbstractTableViewer {
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doClear(int index) {
-		// TODO Fix when grid supports virtual
+		grid.getDataVisualizer().clearRow(grid.getItem(index));
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doClearAll() {
-		// TODO Fix when grid supports virtual
+		grid.getDataVisualizer().clearAll();
+	}
+	
+	/**
+	 * @see org.eclipse.jface.viewers.StructuredViewer#refresh()
+	 */
+	@Override
+	public void refresh()
+	{
+		try
+		{
+			super.refresh();
+		}
+		finally
+		{
+			grid.refreshData();
+		}
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doSetItemCount(int count) {
-		// TODO Once grid supports virtual
+		grid.setItemCount(count);
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doDeselectAll() {
 		grid.deselectAll();
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected Widget doGetColumn(int index) {
 		return grid.getColumn(index);
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected int doGetColumnCount() {
 		return grid.getColumnCount();
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected Item doGetItem(int index) {
 		return grid.getItem(index);
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected int doGetItemCount() {
 		return grid.getItemCount();
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected Item[] doGetItems() {
 		return grid.getItems();
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected Item[] doGetSelection() {
 		return grid.getSelection();
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected int[] doGetSelectionIndices() {
 		return grid.getSelectionIndices();
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected int doIndexOf(Item item) {
-		return grid.indexOf((GridItem) item);
+		return ((GridItem) item).getRowIndex();
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doRemove(int[] indices) {
 		grid.remove(indices);
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doRemove(int start, int end) {
 		grid.remove(start, end);
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doRemoveAll() {
 		grid.removeAll();
 	}
+	
+	/**
+	 * (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.AbstractTableViewer#handleDispose(org.eclipse.swt.events.DisposeEvent)
+	 * fix crossed reference for GC
+	 */
+    @Override
+    protected void handleDispose(final DisposeEvent event)
+    {
+        super.handleDispose(event);
+
+        cachedRow = null;
+        rowHeaderLabelProvider = null;
+        
+        getGrid().setRedraw(false);
+        getGrid().disposeAllItems();
+        getGrid().clearItems();
+    }
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doSetSelection(Item[] items) {
 		GridItem[] items2 = new GridItem[items.length];
 		for (int i = 0; i < items.length; i++) {
@@ -222,31 +312,37 @@ public class GridTableViewer extends AbstractTableViewer {
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doSetSelection(int[] indices) {
 		grid.setSelection(indices);
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doShowItem(Item item) {
 		grid.showItem((GridItem) item);
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doShowSelection() {
 		grid.showSelection();
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected Item getItemAt(Point point) {
 		return grid.getItem(point);
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	public Control getControl() {
 		return grid;
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected ViewerRow getViewerRowFromItem(Widget item) {
 		if (cachedRow == null) {
 			cachedRow = new GridViewerRow((GridItem) item);
@@ -260,6 +356,7 @@ public class GridTableViewer extends AbstractTableViewer {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	protected void doResetItem(Item item) {
 		GridItem gridItem = (GridItem) item;
 		int columnCount = Math.max(1, grid.getColumnCount());
@@ -272,6 +369,7 @@ public class GridTableViewer extends AbstractTableViewer {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	protected void doSelect(int[] indices) {
 		grid.select(indices);
 	}
@@ -307,6 +405,7 @@ public class GridTableViewer extends AbstractTableViewer {
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	protected void doUpdateItem(Widget widget, Object element, boolean fullMap) {
 		super.doUpdateItem(widget, element, fullMap);
 		updateRowHeader(widget);
@@ -343,11 +442,10 @@ public class GridTableViewer extends AbstractTableViewer {
 	public void refreshRowHeaders(Object element) {
 		boolean refresh = element == null;
 
-		GridItem[] items = getGrid().getItems();
-		for (int i = 0; i < items.length; i++) {
-			if (refresh || element.equals(items[i].getData())) {
+		for (int i = 0; i < getGrid().getItemCount(); i++) {
+			if (refresh || element.equals(getGrid().getItem(i).getData())) {
 				refresh = true;
-				updateRowHeader(items[i]);
+				updateRowHeader(getGrid().getItem(i));
 			}
 		}
 	}
@@ -355,6 +453,7 @@ public class GridTableViewer extends AbstractTableViewer {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void editElement(Object element, int column) {
 		try {
 			getControl().setRedraw(false);
@@ -378,15 +477,15 @@ public class GridTableViewer extends AbstractTableViewer {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	protected void setSelectionToWidget(ISelection selection, boolean reveal) {
 		if( ! grid.isCellSelectionEnabled() || !(selection instanceof CellSelection) ) {
 			super.setSelectionToWidget(selection, reveal);
 			if( selection instanceof SelectionWithFocusRow ) {
 				Object el = ((SelectionWithFocusRow)selection).getFocusElement();
 				if( el != null ) {
-					GridItem[] items = grid.getItems();
-					for( int i = 0; i < items.length; i++) {
-						GridItem item = items[i];
+					for( int i = 0; i < grid.getItemCount(); i++) {
+						GridItem item = grid.getItem(i);
 						if( item.getData() == el || item.getData().equals(el) || (getComparer() != null && getComparer().equals(item.getData(), el)) ) {
 							grid.setFocusItem(item);
 							break;
@@ -397,12 +496,11 @@ public class GridTableViewer extends AbstractTableViewer {
 		} else {
 			CellSelection cellSelection = (CellSelection) selection;
 			List l = cellSelection.toList();
-			GridItem[] items = grid.getItems();
 			ArrayList pts = new ArrayList();
 			
-			for( int i = 0; i < items.length; i++ ) {
+			for( int i = 0; i < grid.getItemCount(); i++ ) {
 				Iterator it = l.iterator();
-				Object itemObject = items[i].getData();
+				Object itemObject = grid.getItem(i).getData();
 				while( it.hasNext() ) {
 					Object checkObject = it.next(); 
 					if( itemObject == checkObject || (getComparer() != null && getComparer().equals(itemObject, checkObject) ) ) {
@@ -419,8 +517,8 @@ public class GridTableViewer extends AbstractTableViewer {
 			grid.setCellSelection(tmp);
 			if( cellSelection.getFocusElement() != null ) {
 				Object el = cellSelection.getFocusElement();
-				for( int i = 0; i < items.length; i++) {
-					GridItem item = items[i];
+				for( int i = 0; i < grid.getItemCount(); i++) {
+					GridItem item = grid.getItem(i);
 					if( item.getData() == el || item.getData().equals(el) || (getComparer() != null && getComparer().equals(item.getData(), el)) ) {
 						grid.setFocusItem(item);
 						break;
@@ -433,6 +531,7 @@ public class GridTableViewer extends AbstractTableViewer {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public ISelection getSelection() {
 		if (!grid.isCellSelectionEnabled()) {
 			IStructuredSelection selection = (IStructuredSelection) super
@@ -452,6 +551,7 @@ public class GridTableViewer extends AbstractTableViewer {
 		Point[] ps = grid.getCellSelection();
 		Arrays.sort(ps, new Comparator() {
 
+			@Override
 			public int compare(Object arg0, Object arg1) {
 				Point a = (Point) arg0;
 				Point b = (Point) arg1;
@@ -484,7 +584,7 @@ public class GridTableViewer extends AbstractTableViewer {
 
 		Object focusElement = null;
 
-		if (grid.getFocusItem() != null) {
+		if (grid.getFocusItem() != null && ! grid.getFocusItem().isDisposed()) {
 			focusElement = grid.getFocusItem().getData();
 		}
 

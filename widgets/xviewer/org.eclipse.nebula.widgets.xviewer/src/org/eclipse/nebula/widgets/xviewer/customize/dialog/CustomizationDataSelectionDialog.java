@@ -46,8 +46,8 @@ public class CustomizationDataSelectionDialog extends ListDialog {
 
    private Text custText;
    private String enteredName;
-   private boolean saveGlobal = false;
-   private Button saveGlobalCheck;
+   private boolean saveShared = false;
+   private Button saveSharedCheck;
    private CustomizeData selectedCustData = null;
    private final XViewer xViewer;
 
@@ -62,14 +62,14 @@ public class CustomizationDataSelectionDialog extends ListDialog {
       setLabelProvider(new CustomizeDataLabelProvider(xViewer));
       setInput(custDatas);
       setShellStyle(getShellStyle() | SWT.RESIZE);
-      setTitle(XViewerText.get("CustomizationDataSelectionDialog.title"));
-      setMessage(XViewerText.get("CustomizationDataSelectionDialog.message"));
+      setTitle(XViewerText.get("CustomizationDataSelectionDialog.title")); //$NON-NLS-1$
+      setMessage(XViewerText.get("CustomizationDataSelectionDialog.message")); //$NON-NLS-1$
    }
 
    @Override
    protected void okPressed() {
-      if (custText.getText().equals("") && getSelectedCustData() == null) {
-         XViewerLib.popup("ERROR", XViewerText.get("error.no_cust_selection"));
+      if (custText.getText().equals("") && getSelectedCustData() == null) { //$NON-NLS-1$
+         XViewerLib.popup(XViewerText.get("error"), XViewerText.get("error.no_cust_selection")); //$NON-NLS-1$ //$NON-NLS-2$
          return;
       }
       super.okPressed();
@@ -85,7 +85,7 @@ public class CustomizationDataSelectionDialog extends ListDialog {
       comp.setLayout(new GridLayout(2, true));
 
       Label custTextLabel = new Label(comp, SWT.None);
-      custTextLabel.setText(XViewerText.get("CustomizationDataSelectionDialog.prompt"));
+      custTextLabel.setText(XViewerText.get("CustomizationDataSelectionDialog.prompt")); //$NON-NLS-1$
 
       custText = new Text(comp, SWT.BORDER);
       custText.setFocus();
@@ -102,14 +102,14 @@ public class CustomizationDataSelectionDialog extends ListDialog {
          comp.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false));
          comp.setLayout(new GridLayout(2, false));
 
-         Label saveGlobalCheckLabel = new Label(comp, SWT.None);
-         saveGlobalCheckLabel.setText(XViewerText.get("checkbox.global"));
+         Label saveSharedCheckLabel = new Label(comp, SWT.None);
+         saveSharedCheckLabel.setText(XViewerText.get("checkbox.shared")); //$NON-NLS-1$
 
-         saveGlobalCheck = new Button(comp, SWT.CHECK);
-         saveGlobalCheck.addSelectionListener(new SelectionAdapter() {
+         saveSharedCheck = new Button(comp, SWT.CHECK);
+         saveSharedCheck.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-               saveGlobal = saveGlobalCheck.getSelection();
+               saveShared = saveSharedCheck.getSelection();
             }
          });
       }
@@ -118,9 +118,9 @@ public class CustomizationDataSelectionDialog extends ListDialog {
          @Override
          public void selectionChanged(SelectionChangedEvent event) {
             selectedCustData = getSelectedCustomizeData();
-            if (saveGlobalCheck != null) {
-               saveGlobalCheck.setSelection(!selectedCustData.isPersonal());
-               saveGlobal = !selectedCustData.isPersonal();
+            if (saveSharedCheck != null) {
+               saveSharedCheck.setSelection(!selectedCustData.isPersonal());
+               saveShared = !selectedCustData.isPersonal();
             }
          }
       });
@@ -144,12 +144,12 @@ public class CustomizationDataSelectionDialog extends ListDialog {
       return enteredName;
    }
 
-   public boolean isSaveGlobal() {
-      return saveGlobal;
+   public boolean isSaveShared() {
+      return saveShared;
    }
 
-   public void setSaveGlobal(boolean saveGlobal) {
-      this.saveGlobal = saveGlobal;
+   public void setSaveShared(boolean saveShared) {
+      this.saveShared = saveShared;
    }
 
 }
