@@ -2,7 +2,6 @@ package org.eclipse.nebula.widgets.geomap.tests;
 
 import org.eclipse.nebula.widgets.geomap.GeoMap;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 
 public class SWTBotGeoMap extends SWTBotCanvas<GeoMap> {
@@ -11,10 +10,6 @@ public class SWTBotGeoMap extends SWTBotCanvas<GeoMap> {
 		super(geoMap);
 	}
 
-	private GeoMap getGeoMap() {
-		return getCanvas();
-	}
-	
 	public void pan(int x1, int y1, int x2, int y2) {
 		mouseDrag(x1, y1, x2, y2, SWT.BUTTON1, 1);
 	}

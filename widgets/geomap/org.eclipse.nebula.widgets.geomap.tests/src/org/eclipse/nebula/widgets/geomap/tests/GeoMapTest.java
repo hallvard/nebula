@@ -3,6 +3,7 @@ package org.eclipse.nebula.widgets.geomap.tests;
 import static org.junit.Assert.assertEquals;
 
 import org.eclipse.nebula.widgets.geomap.GeoMap;
+import org.eclipse.nebula.widgets.geomap.internal.GeoMapPositioned;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
@@ -40,6 +41,7 @@ public class GeoMapTest {
 	
 	private SWTBot bot;
 	private GeoMap geoMap;
+	private GeoMapPositioned geoMapPositioned;
 	private SWTBotGeoMap geoMapBot;
 	
 	@Before
@@ -49,7 +51,7 @@ public class GeoMapTest {
 		parent = createUI(display);
 		
 		bot = new SWTBot(parent);
-		geoMap = bot.widget(Is.isA(GeoMap.class));
+		geoMapPositioned = geoMap = bot.widget(Is.isA(GeoMap.class));
 		geoMapBot = new SWTBotGeoMap(geoMap);
 	}
 	
@@ -69,12 +71,12 @@ public class GeoMapTest {
 
 	@Test
 	public void testPan() {
-		Point position1 = geoMap.getMapPosition();
+		Point position1 = geoMapPositioned.getMapPosition();
 		int vx = 0, vy = 0, dx = 10, dy = 20;
 		geoMapBot.pan(vx, vy, vx + dx, vy + dy);
-		assertEquals(new Point(position1.x - dx, position1.y - dy), geoMap.getMapPosition());
+		assertEquals(new Point(position1.x - dx, position1.y - dy), geoMapPositioned.getMapPosition());
 		geoMapBot.pan(vx + dx, vy + dy, vx, vy);
-		assertEquals(position1, geoMap.getMapPosition());
+		assertEquals(position1, geoMapPositioned.getMapPosition());
 	}
 	
 	protected void testMapPositionZoom(int x1, int y1, int z1, int x2, int y2, int z2, int vx, int vy) {
@@ -89,10 +91,10 @@ public class GeoMapTest {
 	}
 	
 	protected void testZoomInPoint(int vx, int vy) {
-		Point position1 = geoMap.getMapPosition();
-		int zoom = geoMap.getZoom();
+		Point position1 = geoMapPositioned.getMapPosition();
+		int zoom = geoMapPositioned.getZoom();
 		geoMapBot.zoomIn(vx, vy);
-		testMapPositionZoom(position1, zoom, geoMap.getMapPosition(), geoMap.getZoom(), vx, vy);
+		testMapPositionZoom(position1, zoom, geoMapPositioned.getMapPosition(), geoMapPositioned.getZoom(), vx, vy);
 	}
 
 	@Test
@@ -102,13 +104,13 @@ public class GeoMapTest {
     }
 
 	protected void testZoomInRectangle(int x1, int y1, int x2, int y2) {
-		Point position1 = geoMap.getMapPosition(), size = geoMap.getSize();
-		int zoom = geoMap.getZoom();
+		Point position1 = geoMapPositioned.getMapPosition(), size = geoMap.getSize();
+		int zoom = geoMapPositioned.getZoom();
 		geoMapBot.zoomIn(x1, y1, x2, y2);
 		// check zoom level
-		assertEquals(zoom + 1, geoMap.getZoom());
+		assertEquals(zoom + 1, geoMapPositioned.getZoom());
 		// check map position
-		Point position2 = geoMap.getMapPosition();
+		Point position2 = geoMapPositioned.getMapPosition();
 		// the center of the rectangle
 		Point center1 = new Point(position1.x + (x1 + x2) / 2, position1.y + (y1 + y2) / 2);
 		// the center of the new viewport (divided by the zoom factor)
@@ -124,13 +126,13 @@ public class GeoMapTest {
     
     @Test
     public void testZoomOut() {
-    	Point position = geoMap.getMapPosition(), size = geoMap.getSize();
-    	int zoom = geoMap.getZoom();
+    	Point position = geoMapPositioned.getMapPosition(), size = geoMap.getSize();
+    	int zoom = geoMapPositioned.getZoom();
     	int vx = size.x / 2, vy = size.y / 2;
 		geoMapBot.zoomOut(size.x / 2, size.y / 2);
 		// check zoom level
-    	assertEquals(zoom - 1, geoMap.getZoom());
+    	assertEquals(zoom - 1, geoMapPositioned.getZoom());
     	// check map position
-    	testMapPositionZoom(geoMap.getMapPosition(), geoMap.getZoom(), position, zoom, vx, vy);
+    	testMapPositionZoom(geoMapPositioned.getMapPosition(), geoMapPositioned.getZoom(), position, zoom, vx, vy);
     }
 }
