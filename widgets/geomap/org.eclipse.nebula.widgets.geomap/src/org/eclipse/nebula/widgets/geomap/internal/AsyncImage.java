@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Display;
  * performance for this swt-component.
  *
  */
+@SuppressWarnings("serial")
 class AsyncImage extends AtomicReference<ImageData> implements Runnable {
 
 	private final GeoMapHelper geoMapHelper;
@@ -105,7 +106,7 @@ class AsyncImage extends AtomicReference<ImageData> implements Runnable {
 	private void checkThread(Display display) {
 		// jdk 1.6 bug from checkWidget still fails here
 		if (display.getThread() != Thread.currentThread()) {
-			throw new IllegalStateException("wrong thread to pick up the image");
+			throw new IllegalStateException("Wrong thread to pick up the image"); //$NON-NLS-1$
 		}
 	}
 }

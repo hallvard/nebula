@@ -1,0 +1,27 @@
+1442324039361	Copy compilation unit
+1442324364964	Rename field 'internalGeoMap'
+1442325963233	Copy compilation unit
+1442326476786	Extract local variable 'mapPosition'
+1442326561133	Extract local variable 'mapPosition'
+1442479378737	Extract local variable 'lat2position'
+1442479850746	Rename local variable 'rect'
+1442480714313	Rename local variable 'internalGeoMap'
+1442480982893	Delete element
+1442482342256	Rename local variable 't'
+1442482613690	Rename method 'controlPainted'
+1442483162077	Rename type 'GeoPositioned'
+1442483190633	Rename type 'MapPositioned'
+1442498184190	Copy compilation unit
+1442498632003	Delete element
+1442515319310	Rename local variable 'd'
+1442515338421	Rename type 'HelloWorld'
+1442515367890	Extract method 'createMapFigure'
+1442515511953	Extract local variable 'mapFigure'
+1442515764907	Extract method 'updateGeoMapHelper'
+1442515898919	Extract local variable 'position'
+1442516778947	Extract local variable 'size'
+1442516966833	Extract method 'updateImage'
+1442517261628	Extract method 'invalidateImage'
+1442517760319	Delete element
+1442518532479	Extract local variable 'imageSize'
+1442518938900	Extract local variable 'size'

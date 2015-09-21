@@ -1,13 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2012 Hallvard Tr�tteberg.
+ * Copyright (c) 2012 Hallvard Trætteberg.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Hallvard Tr�tteberg - initial API and implementation
+ *     Hallvard Trætteberg - initial API and implementation
  ******************************************************************************/
+
 package org.eclipse.nebula.widgets.geomap.jface;
 
 import org.eclipse.jface.viewers.ContentViewer;
@@ -41,7 +42,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 
 /**
- * A JFace viewer for the GeoMap widget
+ * A JFace viewer for the GeoMap widget, that shows the geo-location of the input elements.
+ * The LocationProvider maps the input elements to geo-locations
  * @author hal
  *
  */
@@ -149,14 +151,38 @@ public class GeoMapViewer extends ContentViewer {
 		return null;
 	}
 
+	/**
+	 * Gets the element found within the rectangle of the given position and size
+	 * @param x the x coordinate of center of the rectangle
+	 * @param y the y coordinate of center of the rectangle
+	 * @param thumbSize the width and height of the rectangle
+	 * @return the element found or null, if none where found
+	 */
 	public Object getElementAt(int x, int y, int thumbSize) {
 		return doContents(null, new Rectangle(x - thumbSize / 2, y - thumbSize / 2, thumbSize, thumbSize), null);
 	}
 	
-	public static int NO_CLIP = 0, CLIP_ON_ELEMENT_POSITION = 1, CLIP_ON_IMAGE_BOUNDS = 2;
+	/**
+	 * Constant indicating that location markers should not be clipped
+	 */
+	public static int NO_CLIP = 0;
+
+	/**
+	 * Constant indicating the location markers should be clipped, based on their position
+	 */
+	public static int CLIP_ON_ELEMENT_POSITION = 1;
+
+	/**
+	 * Constant indicating the location markers should be clipped, based on the bounding box of their image
+	 */
+	public static int CLIP_ON_IMAGE_BOUNDS = 2;
 
 	private int clipRule = CLIP_ON_ELEMENT_POSITION;
 	
+	/**
+	 * Sets the clipping rule
+	 * @param clipRule the clipping rule, one of the constants NO_CLIP, CLIP_ON_ELEMENT_POSITION or CLIP_ON_IMAGE_BOUNDS
+	 */
 	public void setClipRule(int clipRule) {
 		this.clipRule = clipRule;
 	}
@@ -276,6 +302,11 @@ public class GeoMapViewer extends ContentViewer {
 
 	private int revealMargin = 10;
 
+	/**
+	 * Pans the viewer so the element is revealed
+	 * @param selection the element to reveal
+	 * @param center whether to center on the element
+	 */
 	public void reveal(Object selection, boolean center) {
 		Point position = getElementPosition(selection, new Point(0, 0), true);
 		Point size = geoMap.getSize();
@@ -286,6 +317,9 @@ public class GeoMapViewer extends ContentViewer {
 		}
 	}
 
+	/**
+	 * Pans and zooms so all elements are revealed.
+	 */
 	public void revealAll() {
 		zoomTo(((IStructuredContentProvider) getContentProvider()).getElements(getInput()), -1);
 	}
@@ -297,23 +331,45 @@ public class GeoMapViewer extends ContentViewer {
 
 	//
 
-	public final static int
-		MOVE_SELECTION_NONE = 0,
-		MOVE_SELECTION_ALLOW_CHECK_IMMEDIATE = 1,
-		MOVE_SELECTION_ALLOW_CHECK_LATE = 2;
+	/**
+	 * Constant indicating the selection cannot be moved, i.e. its location is read-only
+	 */
+	public final static int MOVE_SELECTION_NONE = 0;
+
+	/**
+	 * Constant indicating the selection will be moved immediately, using the LocationProvider's set method
+	 */
+	public final static int MOVE_SELECTION_ALLOW_CHECK_IMMEDIATE = 1;
+
+	/**
+	 * Constant indicating the selection will be moveable, but the actual move is performed using the LocationProvider's set method, when dropping
+	 */
+	public final static int MOVE_SELECTION_ALLOW_CHECK_LATE = 2;
 	
 	private int moveSelectionMode = MOVE_SELECTION_ALLOW_CHECK_IMMEDIATE;
 
+	/**
+	 * Sets the current move mode, one of MOVE_SELECTION_NONE, MOVE_SELECTION_ALLOW_CHECK_IMMEDIATE or MOVE_SELECTION_ALLOW_CHECK_LATE
+	 * @param moveSelectionMode
+	 */
 	public void setMoveSelectionMode(int moveSelectionMode) {
 		this.moveSelectionMode = moveSelectionMode;
 	}
 
+	/**
+	 * Gets the current move mode
+	 * @return the current move mode
+	 */
 	public int getMoveSelectionMode() {
 		return moveSelectionMode;
 	}
 
 	private ToolTip toolTip, lastToolTip;
 
+	/**
+	 * Gets the current ToolTip
+	 * @return the current ToolTip
+	 */
 	public ToolTip getToolTip() {
 		if (toolTip == null) {
 			toolTip = new DefaultToolTip(getControl());
@@ -451,6 +507,11 @@ public class GeoMapViewer extends ContentViewer {
     
 	private static final int MAX_ZOOM_TO = 12;
 
+	/**
+	 * Zooms out so all elements are revealed, but only upto a certain zoom level.
+	 * @param elements the elements to reveal
+	 * @param maxZoom the maximum zoom
+	 */
     public void zoomTo(Object[] elements, int maxZoom) {
     	getGeoMap().setZoom(getGeoMap().getTileServer().getMaxZoom());
     	Rectangle rect = getBounds(elements);

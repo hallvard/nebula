@@ -7,11 +7,11 @@
  *
  * Contributors:
  *    Stepan Rutz - initial implementation
+ *    Hallvard Trætteberg - further cleanup and development
  *******************************************************************************/
 
 package org.eclipse.nebula.widgets.geomap;
 
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.List;
@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 
 /**
  * GeoMap display tiles from openstreetmap as is. This simple minimal viewer supports zoom around mouse-click center and has a simple api.
- * A number of tiles are cached. See {@link #CACHE_SIZE} constant. If you use this it will create traffic on the tileserver you are
+ * A number of tiles are cached. If you use this it will create traffic on the tileserver you are
  * using. Please be conscious about this.
  *
  * This class is a JPanel which can be integrated into any swing app just by creating an instance and adding like a JLabel.
@@ -52,17 +52,11 @@ import org.eclipse.swt.widgets.Composite;
  * </ul>
  * </p>
  *
- * <p>For performance tuning the two crucial parameters are the size of the {@link TileCache} and the
+ * <p>For performance tuning the two crucial parameters are the size of the tile cache and the
  * number of image-loader threads.
  * </p>
  *
- * <p>As mentioned above Longitude/Latitude functionality is available via the method {@link #computePosition(java.awt.geom.Point2D.Double)}.
- * If you have a GIS database you can get this info out of it for a given town/location, invoke {@link #computePosition(java.awt.geom.Point2D.Double)} to
- * translate to a position for the given zoom level and center the view around this position using {@link #setCenterPosition(Point)}.
  * </p>
- *
- * <p>The properties <code>zoom</code> and <code>mapPosition</code> are bound and can be tracked via
- * regular {@link PropertyChangeListener}s.</p>
  *
  * <p>License is EPL (Eclipse Public License) http://www.eclipse.org/legal/epl-v10.html.  Contact at stepan.rutz@gmx.de</p>
  *
@@ -72,8 +66,9 @@ import org.eclipse.swt.widgets.Composite;
 
 public class GeoMap extends InternalGeoMap {
 
+	@SuppressWarnings({ "nls" })
 	public static final String ABOUT_MSG =
-        "MapWidget - Minimal Openstreetmap/Maptile Viewer\r\n" +
+        "GeoMap - Minimal Openstreetmap/Maptile Viewer\r\n" +
         "Requirements: Java + SWT. Opensource and licensed under EPL.\r\n" +
         "\r\n" +
         "Web/Source: <a href=\"http://mappanel.sourceforge.net\">http://mappanel.sourceforge.net</a>\r\n" +

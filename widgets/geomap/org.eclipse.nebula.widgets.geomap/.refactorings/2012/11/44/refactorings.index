@@ -1,0 +1,20 @@
+1351750844383	Delete element
+1351751430116	Rename type 'MapListener'
+1351753358859	Copy compilation unit
+1351753376870	Rename type 'GeoMap'
+1351753451588	Rename type 'GeoMapInternal'
+1351753691831	Move type 'AsyncImage' to new file
+1351753758716	Copy compilation unit
+1351753783897	Move type 'TileCache' to new file
+1351754105904	Delete element
+1351788205421	Rename local variable 'p'
+1351788841826	Delete element
+1351788986780	Move compilation unit
+1351789042187	Move compilation units
+1351789708329	Extract local variable 'max'
+1351789715980	Rename local variable 'max'
+1351790091896	Extract local variable 'stats'
+1351790427525	Rename field 'geoMapListeners'
+1351790996735	Rename method 'firePainted'
+1351791713560	Rename field 'cacheUsed'
+1351791719775	Rename field 'cacheSize'

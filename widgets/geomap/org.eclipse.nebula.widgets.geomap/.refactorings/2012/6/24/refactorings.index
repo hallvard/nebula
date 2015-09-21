@@ -1,0 +1,23 @@
+1339441592354	Copy compilation unit
+1339441659208	Rename type 'TileServer'
+1339441930552	Copy compilation unit
+1339441940054	Rename type 'QueryServer'
+1339442052048	Rename type 'AbstractServer'
+1339442830845	Rename type 'QueryServer'
+1339443313037	Rename local variable 'args'
+1339446690509	Extract local variable 'pathPos'
+1339447174840	Extract local variable 'lat'
+1339447183285	Extract local variable 'lon'
+1339447459302	Copy compilation unit
+1339448811231	Rename method 'getResult'
+1339449736885	Extract local variable 'peek'
+1339449752308	Rename local variable 'peek'
+1339450834702	Rename local variable 'searchResult'
+1339451105840	Rename method 'getLocation'
+1339451181713	Copy compilation unit
+1339451420916	Rename field 'location'
+1339486797818	Rename type 'Stub'
+1339492061919	Extract local variable 'displayName'
+1339493429108	Extract constant 'MAX_ZOOM_TO'
+1339494194457	Rename type 'OsmServer'
+1339494206733	Rename type 'GoogleServer'

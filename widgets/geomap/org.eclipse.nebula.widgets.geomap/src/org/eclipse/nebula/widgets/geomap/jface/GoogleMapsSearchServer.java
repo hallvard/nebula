@@ -16,16 +16,17 @@ import java.util.Stack;
 import org.xml.sax.Attributes;
 
 /**
+ * A SearchServer using Google maps
  * @since 3.3
  *
  */
 public class GoogleMapsSearchServer extends SearchServer {
 
 	/**
-	 * @param url
+	 * Initializes the GoogleMapsSearchServer
 	 */
 	public GoogleMapsSearchServer() {
-		super("http://maps.googleapis.com/maps/api/geocode/xml?", "address={0}&sensor=false");
+		super("http://maps.googleapis.com/maps/api/geocode/xml?", "address={0}&sensor=false");  //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	/*
@@ -92,7 +93,7 @@ public class GoogleMapsSearchServer extends SearchServer {
 
 	@Override
 	protected Object startElement(String qName, Stack<String> path, Attributes attributes, Stack<Object> objects) {
-    	if ("result".equals(qName)) {
+    	if ("result".equals(qName)) { //$NON-NLS-1$
             objects.push(new SearchResult());
         }
 		return null;
@@ -102,20 +103,20 @@ public class GoogleMapsSearchServer extends SearchServer {
     protected Object characters(String qName, Stack<String> path, char[] ch, int start, int length, Stack<Object> objects) {
 		if (objects.size() > 0 && objects.peek() instanceof SearchResult) {
 			SearchResult result = (SearchResult) objects.peek();
-			if ("type".equals(qName) && "result".equals(path.peek())) {
+			if ("type".equals(qName) && "result".equals(path.peek())) {  //$NON-NLS-1$ //$NON-NLS-2$
 				String s = new String(ch, start, length).trim();
 				if (result.category == null) {
 					result.category = s;
 				} else {
 					result.type = s;
 				}
-			} else if ("formatted_address".equals(qName) && "result".equals(path.peek())) {
+			} else if ("formatted_address".equals(qName) && "result".equals(path.peek())) {  //$NON-NLS-1$ //$NON-NLS-2$
 				result.setText(new String(ch, start, length));
-			} else if ("short_name".equals(qName) && result.getName() == null) {
+			} else if ("short_name".equals(qName) && result.getName() == null) { //$NON-NLS-1$
 				result.setName(new String(ch, start, length));
-			} else if ("lng".equals(qName) && "location".equals(path.peek())) {
+			} else if ("lng".equals(qName) && "location".equals(path.peek())) {  //$NON-NLS-1$ //$NON-NLS-2$
 				result.setLon(new String(ch, start, length).trim());
-			} else if ("lat".equals(qName) && "location".equals(path.peek())) {
+			} else if ("lat".equals(qName) && "location".equals(path.peek())) {  //$NON-NLS-1$ //$NON-NLS-2$
 				result.setLat(new String(ch, start, length).trim());
 	        }
 		}
@@ -124,7 +125,7 @@ public class GoogleMapsSearchServer extends SearchServer {
 
 	@Override
 	protected Object endElement(String qName, Stack<String> path, Stack<Object> objects) {
-		if ("result".equals(qName) && objects.size() > 0 && objects.peek() instanceof SearchResult) {
+		if ("result".equals(qName) && objects.size() > 0 && objects.peek() instanceof SearchResult) { //$NON-NLS-1$
 			SearchResult result = (SearchResult) objects.peek();
 			if (result.getLonLat() != null) {
 				return result;
@@ -133,20 +134,33 @@ public class GoogleMapsSearchServer extends SearchServer {
 		return null;
 	}
 
+	/**
+	 * The SearchResult returned from the GoogleMapsSearchServer
+	 * @since 3.3
+	 *
+	 */
     public static final class SearchResult extends Result {
         private String type;
         private String category;
 
-        public SearchResult() {
-        }
+        /**
+         * Gets the result type
+         * @return the result type
+         */
         public String getType() {
             return type;
         }
+
+        /**
+         * Gets the result category
+         * @return the result category
+         */
         public String getCategory() {
             return category;
         }
 
-        public String toString() {
+        @SuppressWarnings("nls")
+		public String toString() {
             return "SearchResult [text=" + getText() + ", location=" + getLonLat() + ", type=" + type + ", category=" + category + "]";
         }
     }

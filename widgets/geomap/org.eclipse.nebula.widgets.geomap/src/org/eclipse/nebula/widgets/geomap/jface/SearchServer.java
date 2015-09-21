@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012 Hallvard Tr�tteberg.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http\://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors\:
- *     IBM Corporation - initial API and implementation
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Hallvard Tr�tteberg - initial API and implementation
  ******************************************************************************/
 
 package org.eclipse.nebula.widgets.geomap.jface;
@@ -24,14 +24,28 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+/**
+ * An abstract super class for search servers
+ * @since 3.3
+ *
+ */
 public abstract class SearchServer extends URLService {
 
+	/**
+	 * Initializes the SearchServer with a specific URL and url format
+	 * @param url
+	 * @param urlFormat
+	 */
     public SearchServer(String url, String urlFormat) {
     	super(url, urlFormat);
     }
 
+	/**
+	 * Initializes the SearchServer with a specific URL and default url format
+	 * @param url
+	 */
     public SearchServer(String url) {
-    	parseUrl(url, "format=xml&q={0}");
+    	parseUrl(url, "format=xml&q={0}"); //$NON-NLS-1$
     }
 
     @Override
@@ -39,10 +53,20 @@ public abstract class SearchServer extends URLService {
     	return new Object[]{ref};
     }
     
+    /**
+     * Gets the URL used for a specific search
+     * @param search
+     * @return the URL
+     */
     public String getSearchURL(String search) {
     	return getServiceURL(search);
     }
 
+    /**
+     * Tries to parse s as a Double, defaulting to Double.NaN
+     * @param s the String to parse
+     * @return the double or NaN, if the String couldn't be parsed
+     */
     protected static double tryDouble(String s) {
         try {
             return Double.valueOf(s);

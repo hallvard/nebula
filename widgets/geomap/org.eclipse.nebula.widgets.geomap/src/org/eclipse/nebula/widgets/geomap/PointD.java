@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Stepan Rutz - initial implementation
+ *    Hallvard Trætteberg - further cleanup and development
  *******************************************************************************/
 
 package org.eclipse.nebula.widgets.geomap;

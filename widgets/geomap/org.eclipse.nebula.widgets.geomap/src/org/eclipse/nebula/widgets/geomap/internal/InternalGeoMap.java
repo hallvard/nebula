@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Stepan Rutz - initial implementation
+ *    Hallvard Trætteberg - further cleanup and development
  *******************************************************************************/
 
 package org.eclipse.nebula.widgets.geomap.internal;
@@ -72,12 +73,18 @@ public class InternalGeoMap extends Canvas implements GeoMapPositioned, GeoMapHe
     	geoMapHelper.paint(e.gc, new Rectangle(e.x, e.y, e.width, e.height), getSize());
     }
 
-    //
-    
+    /**
+     * Adds an InternalGeoMapListener    
+     * @param listener
+     */
     public void addInternalGeoMapListener(InternalGeoMapListener listener) {
     	geoMapHelper.addInternalGeoMapListener(listener);
     }
 
+    /**
+     * Removes an InternalGeoMapListener    
+     * @param listener
+     */
     public void removeInternalGeoMapListener(InternalGeoMapListener listener) {
     	geoMapHelper.removeInternalGeoMapListener(listener);
     }

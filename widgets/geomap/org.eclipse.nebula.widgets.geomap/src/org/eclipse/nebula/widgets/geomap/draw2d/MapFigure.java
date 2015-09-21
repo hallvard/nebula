@@ -1,13 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015 Hallvard Trætteberg.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http\://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-v10.html
  *
- * Contributors\:
- *     IBM Corporation - initial API and implementation
- ******************************************************************************/
+ * Contributors:
+ *    Hallvard Trætteberg - initial implementation
+ *******************************************************************************/
 
 package org.eclipse.nebula.widgets.geomap.draw2d;
 
@@ -17,6 +17,7 @@ import org.eclipse.draw2d.ImageFigure;
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.nebula.widgets.geomap.GeoMapUtil;
 import org.eclipse.nebula.widgets.geomap.PointD;
+import org.eclipse.nebula.widgets.geomap.TileServer;
 import org.eclipse.nebula.widgets.geomap.internal.GeoMapHelper;
 import org.eclipse.nebula.widgets.geomap.internal.GeoMapHelperListener;
 import org.eclipse.nebula.widgets.geomap.internal.TileRef;
@@ -29,6 +30,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 /**
+ * An ImageFigure that creates the image from tiles fetched using a GeoMapHelper
  * @since 3.3
  *
  */
@@ -37,19 +39,33 @@ public class MapFigure extends ImageFigure implements GeoMapHelperListener {
 	private static int DEFAULT_CACHE_SIZE = 256;
 	
 	private GeoMapHelper geoMapHelper;
-	
-	private PointD location = null;
 
+	private TileServer tileServer;
+	private PointD location = null;
 	private int zoom = 10;
 
 	/**
-	 * @param zoomLevel The zoomLevel to set.
+	 * Sets the TileServer used for fetching tiles.
+	 * @param tileServer The tileServer to set.
+	 */
+	public void setTileServer(TileServer tileServer) {
+		this.tileServer = tileServer;
+		invalidateImage();
+	}
+	
+	/**
+	 * @param zoom The zoomLevel to set.
 	 */
 	public void setZoomLevel(int zoom) {
 		this.zoom = zoom;
 		invalidateImage();
 	}
 	
+	/**
+	 * Sets the location as a pair of longitude/latitude values
+	 * @param longitude
+	 * @param latitude
+	 */
 	public void setLocation(double longitude, double latitude) {
 		location = new PointD(longitude, latitude);
 		invalidateImage();
@@ -116,6 +132,9 @@ public class MapFigure extends ImageFigure implements GeoMapHelperListener {
 				geoMapHelper = new GeoMapHelper(getDisplay(), position, zoom, DEFAULT_CACHE_SIZE);
 				geoMapHelper.addGeoMapHelperListener(this);
 			}
+			if (tileServer != null) {
+				geoMapHelper.setTileServer(tileServer);
+			}
 			geoMapHelper.setZoom(zoom);
 			geoMapHelper.setMapPosition(position.x, position.y);
 		}
@@ -127,6 +146,11 @@ public class MapFigure extends ImageFigure implements GeoMapHelperListener {
 
 	// standalone example
 
+	/**
+	 * Minimal standalone example, used for testing
+	 * @param args
+	 */
+	@SuppressWarnings("nls")
 	public static void main(String[] args) {
 
 		Display display = new Display();
