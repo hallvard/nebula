@@ -12,7 +12,6 @@
 package org.eclipse.nebula.widgets.geomap.internal;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 

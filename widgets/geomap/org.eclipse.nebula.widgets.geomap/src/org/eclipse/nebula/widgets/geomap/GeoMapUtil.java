@@ -144,8 +144,9 @@ public class GeoMapUtil {
      * @param geoMap the geoMap
      * @param mapSize the size of the map, containes the zoom rectangle
      * @param rect the rectangle
+     * @param maxZoom the maximum level to zoom to, or -1 to default to the geoMap's max zoom
      */
-    public static void zoomTo(GeoMapPositioned geoMap, Point mapSize, Rectangle rect) {
+    public static void zoomTo(GeoMapPositioned geoMap, Point mapSize, Rectangle rect, int maxZoom) {
     	Rectangle zoomRectangle = new Rectangle(rect.x, rect.y, rect.width, rect.height);
     	int zoom = geoMap.getZoom();
     	// compute zoom by zooming out until the rectangle fits within the viewport
@@ -158,7 +159,10 @@ public class GeoMapUtil {
 			zoomRectangle.height /= 2;
 		}
     	// compute zoom by zooming in as long as the rectangle will fit within the viewport
-		while (mapSize.x > zoomRectangle.width * 2 + zoomMargin && mapSize.y > zoomRectangle.height * 2 + zoomMargin && zoom < geoMap.getMaxZoom()) {
+    	if (maxZoom < 0) {
+    		maxZoom = geoMap.getMaxZoom();
+    	}
+		while (mapSize.x > zoomRectangle.width * 2 + zoomMargin && mapSize.y > zoomRectangle.height * 2 + zoomMargin && zoom < maxZoom) {
 			// zoom in and scale zoom rectangle up
 			zoom++;
 			zoomRectangle.x *= 2;

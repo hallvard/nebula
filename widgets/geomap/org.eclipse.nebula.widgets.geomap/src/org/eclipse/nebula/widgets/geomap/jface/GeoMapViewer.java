@@ -457,6 +457,6 @@ public class GeoMapViewer extends ContentViewer {
     	if (rect == null) {
     		return;
     	}
-    	getGeoMap().zoomTo(rect, maxZoom >= 0 ? maxZoom : MAX_ZOOM_TO);
+    	GeoMapUtil.zoomTo(getGeoMap(), getGeoMap().getSize(), rect, maxZoom >= 0 ? maxZoom : MAX_ZOOM_TO);
     }
 }

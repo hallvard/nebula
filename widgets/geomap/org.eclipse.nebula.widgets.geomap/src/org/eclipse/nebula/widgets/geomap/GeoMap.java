@@ -17,7 +17,6 @@ import java.util.EventListener;
 import java.util.List;
 
 import org.eclipse.nebula.widgets.geomap.internal.DefaultMouseHandler;
-import org.eclipse.nebula.widgets.geomap.internal.GeoMapPositioned;
 import org.eclipse.nebula.widgets.geomap.internal.InternalGeoMap;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
@@ -328,7 +327,7 @@ public class GeoMap extends InternalGeoMap {
      * @param rect the rectangle
      */
     public void zoomTo(Rectangle rect) {
-    	GeoMapUtil.zoomTo(this, getSize(), rect);
+    	GeoMapUtil.zoomTo(this, getSize(), rect, -1);
 		redraw();
     }
 

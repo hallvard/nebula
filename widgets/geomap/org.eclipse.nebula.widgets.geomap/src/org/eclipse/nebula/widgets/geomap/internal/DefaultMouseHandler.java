@@ -483,7 +483,7 @@ public abstract class DefaultMouseHandler implements MouseListener, MouseWheelLi
     protected boolean handleZoomUp(MouseEvent e) {
     	if (isZooming()) {
     		if (zoomRectangle != null && zoomRectangle.width >= 2 && zoomRectangle.height >= 2) {
-    			GeoMapUtil.zoomTo(getGeoMap(), getMapSize(), zoomRectangle);
+    			GeoMapUtil.zoomTo(getGeoMap(), getMapSize(), zoomRectangle, -1);
     		}
     		zoomStart = null;
     		zoomRectangle = null;
