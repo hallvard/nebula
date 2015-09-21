@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Geomap tests
+Bundle-SymbolicName: org.eclipse.nebula.widgets.geomap.tests;singleton:=true
+Bundle-Version: 0.1.0.qualifier
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: 
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Require-Bundle: org.eclipse.swt,
+ org.eclipse.swtbot.go,
+ org.eclipse.nebula.widgets.geomap;bundle-version="0.1.0"

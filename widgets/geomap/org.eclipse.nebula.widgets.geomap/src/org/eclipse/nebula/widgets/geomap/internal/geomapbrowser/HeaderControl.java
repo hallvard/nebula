@@ -9,7 +9,7 @@
  *    Stepan Rutz - initial implementation
  *******************************************************************************/
 
-package org.eclipse.nebula.widgets.geomap.internal;
+package org.eclipse.nebula.widgets.geomap.internal.geomapbrowser;
 
 import org.eclipse.nebula.widgets.geomap.GeoMap;
 import org.eclipse.swt.SWT;

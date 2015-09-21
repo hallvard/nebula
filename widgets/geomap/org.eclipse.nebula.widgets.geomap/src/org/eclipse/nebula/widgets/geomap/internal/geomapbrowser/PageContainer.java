@@ -10,10 +10,11 @@
  *******************************************************************************/
 
 
-package org.eclipse.nebula.widgets.geomap.internal;
+package org.eclipse.nebula.widgets.geomap.internal.geomapbrowser;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.eclipse.nebula.widgets.geomap.internal.TitleControl;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.DisposeEvent;

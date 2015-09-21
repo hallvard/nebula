@@ -11,8 +11,6 @@
 
 package org.eclipse.nebula.widgets.geomap;
 
-import java.net.URL;
-
 /**
  * This class encapsulates a tileserver, which has the concept
  * of a baseurl and a maximum zoon level. 

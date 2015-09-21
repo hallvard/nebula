@@ -11,12 +11,8 @@
 
 package org.eclipse.nebula.widgets.geomap.jface;
 
-import java.util.AbstractList;
 import java.util.Stack;
 
-import org.eclipse.nebula.widgets.geomap.PointD;
-import org.eclipse.nebula.widgets.geomap.internal.SearchPage.SearchResult;
-import org.eclipse.nebula.widgets.geomap.jface.SearchServer.Result;
 import org.xml.sax.Attributes;
 
 /**

@@ -9,19 +9,16 @@
  *     IBM Corporation - initial API and implementation
  ******************************************************************************/
 
-package org.eclipse.nebula.widgets.geomap;
+package org.eclipse.nebula.widgets.geomap.internal;
 
 /**
- * This class encapsulates a tileserver, which has the concept
- * of a baseurl and a maximum zoom level. 
+ * Interface for tapping into internal details of an InternalGeoMap
  */
-public final class OsmTileServer extends TileServer {
+public interface GeoMapHelperListener {
 
-    public OsmTileServer(String url, int maxZoom) {
-    	super(url, maxZoom);
-    }
-
-    public static final OsmTileServer[] TILESERVERS = {
-        new OsmTileServer("	http://a.tile.openstreetmap.org/", 18),
-    };
+	/**
+	 * Notifies listener that a tile has been updated and may need (re)painting 
+	 * @param tileRef the reference to the updated tile
+	 */
+	public void tileUpdated(TileRef tileRef);
 }

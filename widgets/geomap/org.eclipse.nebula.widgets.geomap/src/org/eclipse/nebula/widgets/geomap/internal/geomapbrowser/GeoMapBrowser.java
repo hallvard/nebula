@@ -9,14 +9,10 @@
  *    Stepan Rutz - initial implementation
  *******************************************************************************/
 
-package org.eclipse.nebula.widgets.geomap;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+package org.eclipse.nebula.widgets.geomap.internal.geomapbrowser;
 
-import org.eclipse.nebula.widgets.geomap.internal.InfoPage;
-import org.eclipse.nebula.widgets.geomap.internal.PageContainer;
-import org.eclipse.nebula.widgets.geomap.internal.ResultsPage;
-import org.eclipse.nebula.widgets.geomap.internal.SearchPage;
+import org.eclipse.nebula.widgets.geomap.GeoMap;
+import org.eclipse.nebula.widgets.geomap.GeoMapListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlAdapter;
@@ -25,7 +21,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -37,6 +32,7 @@ import org.eclipse.swt.widgets.Shell;
  * @version $Revision$
  */
 public class GeoMapBrowser extends Composite {
+
     private SashForm sashForm;
     private PageContainer pageContainer;
     private GeoMap geoMap;
@@ -63,11 +59,15 @@ public class GeoMapBrowser extends Composite {
         pageContainer.setPages(searchPage, resultsPage, infoPage);
         pageContainer.showPage(0);
 
-//        geoMap.addPropertyChangeListener(new PropertyChangeListener() {
-//            public void propertyChange(PropertyChangeEvent event) {
-//                infoPage.updateInfos();
-//            }
-//        });
+        geoMap.addGeoMapListener(new GeoMapListener() {
+			public void zoomChanged(GeoMap geoMap) {
+				infoPage.updateInfos();
+			}
+			public void centerChanged(GeoMap geoMap) {
+				infoPage.updateInfos();
+			}
+        });
+
         geoMap.addControlListener(new ControlAdapter() {
             public void controlResized(ControlEvent e) {
                 infoPage.updateInfos();
@@ -79,28 +79,8 @@ public class GeoMapBrowser extends Composite {
             }
         });
     }
-
-    public GeoMap getGeoMap() {
-        return geoMap;
-    }
-
-    public SearchPage getSearchPage() {
-        return searchPage;
-    }
     
-    public InfoPage getInfoPage() {
-        return infoPage;
-    }
-    
-    public ResultsPage getResultsPage() {
-        return resultsPage;
-    }
-    
-    public PageContainer getPageContainer() {
-        return pageContainer;
-    }
-    
-    private void createMenu(Shell shell) {
+    public void createMenu(Shell shell) {
         Menu bar = new Menu (shell, SWT.BAR);
         shell.setMenuBar (bar);
         MenuItem fileItem = new MenuItem (bar, SWT.CASCADE);
@@ -116,4 +96,20 @@ public class GeoMapBrowser extends Composite {
         item.setText ("E&xit\tCtrl+W");
         item.setAccelerator(SWT.MOD1 + 'W');
     }
+
+	GeoMap getGeoMap() {
+		return geoMap;
+	}
+
+	PageContainer getPageContainer() {
+		return pageContainer;
+	}
+
+	Page getInfoPage() {
+		return infoPage;
+	}
+
+	ResultsPage getResultsPage() {
+		return resultsPage;
+	}
 }

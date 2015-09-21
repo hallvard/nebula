@@ -9,8 +9,9 @@
  *    Stepan Rutz - initial implementation
  *******************************************************************************/
 
-package org.eclipse.nebula.widgets.geomap.internal;
+package org.eclipse.nebula.widgets.geomap.internal.geomapbrowser;
 import java.net.URLEncoder;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.eclipse.nebula.widgets.geomap.GeoMap;
-import org.eclipse.nebula.widgets.geomap.GeoMapBrowser;
+import org.eclipse.nebula.widgets.geomap.GeoMapUtil;
 import org.eclipse.nebula.widgets.geomap.OsmTileServer;
 import org.eclipse.nebula.widgets.geomap.PointD;
 import org.eclipse.swt.SWT;
@@ -116,6 +117,10 @@ public class SearchPage extends AbstractPage implements Page {
         this.mapBrowser = mapBrowser;
     }
     
+	protected void widgetDisposed(DisposeEvent e) {
+		// nothing to dispose
+	}
+
     protected void initContent(final PageContainer container, Composite composite) {
         addHeaderRow(container, composite, "Infopanel");
         addInfoText(container, composite, "Toggling the tile-server changes the way " +
@@ -139,7 +144,7 @@ public class SearchPage extends AbstractPage implements Page {
             public void widgetSelected(SelectionEvent e) {
                 GeoMap geoMap = mapBrowser.getGeoMap();
                 geoMap.setZoom(5);
-                Point position = geoMap.computePosition(new PointD(5.5, 52.2));
+                Point position = GeoMapUtil.computePosition(new PointD(5.5, 52.2), geoMap.getZoom());
                 geoMap.setCenterPosition(position);
                 geoMap.redraw();
             }
@@ -195,11 +200,8 @@ public class SearchPage extends AbstractPage implements Page {
      addHeaderRow(container, composite, "Actions");
         addInfoText(container, composite, GeoMap.ABOUT_MSG);
     }
-
-    protected void widgetDisposed(DisposeEvent e) {
-    }
     
-    public void startSearch() {
+    void startSearch() {
         if (searching)
             return;
         final String search = searchText.getText();
@@ -233,26 +235,29 @@ public class SearchPage extends AbstractPage implements Page {
         progressBar.getParent().layout();
     }
     
+    private static final String NAMEFINDER_URL_FORMAT = "http://nominatim.openstreetmap.org/search?format=xml&q={0}"; //$NON-NLS-1$    
+
     private void doSearchInternal(final String newSearch) {
         results.clear();
         try {
-            String args = URLEncoder.encode(newSearch.trim(), "UTF-8");
-            String path = GeoMap.NAMEFINDER_URL + "?format=xml&q=" + args;
+            String args = URLEncoder.encode(newSearch.trim(), "UTF-8"); //$NON-NLS-1$
+            String path = MessageFormat.format(NAMEFINDER_URL_FORMAT, args);
             SAXParserFactory factory = SAXParserFactory.newInstance();
             factory.setValidating(false);
             factory.newSAXParser().parse(path, new DefaultHandler() {
                 private StringBuilder chars;
                 public void startElement(String uri, String localName, String qName, Attributes attributes) {
-                	if ("place".equals(qName)) {
+                	if ("place".equals(qName)) { //$NON-NLS-1$
                         SearchResult result = new SearchResult();
-                        result.setType(attributes.getValue("type"));
-                        result.setLat(tryDouble(attributes.getValue("lat")));
-                        result.setLon(tryDouble(attributes.getValue("lon")));
-                        result.setName(attributes.getValue("display_name"));
+                        result.setType(attributes.getValue("type")); //$NON-NLS-1$
+                        result.setLat(tryDouble(attributes.getValue("lat"))); //$NON-NLS-1$
+                        result.setLon(tryDouble(attributes.getValue("lon"))); //$NON-NLS-1$
+                        result.setName(attributes.getValue("display_name")); //$NON-NLS-1$
                         results.add(result);
                     }
                 }
                 public void endElement(String uri, String localName, String qName) throws SAXException {
+                	// ignore
                 }
                 public void characters(char[] ch, int start, int length) throws SAXException {
                     if (chars != null)

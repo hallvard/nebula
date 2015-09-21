@@ -9,13 +9,13 @@
  *    Stepan Rutz - initial implementation
  *******************************************************************************/
 
-package org.eclipse.nebula.widgets.geomap.internal;
+package org.eclipse.nebula.widgets.geomap.internal.geomapbrowser;
 import java.util.logging.Logger;
 
 import org.eclipse.nebula.widgets.geomap.GeoMap;
-import org.eclipse.nebula.widgets.geomap.GeoMapBrowser;
+import org.eclipse.nebula.widgets.geomap.GeoMapUtil;
 import org.eclipse.nebula.widgets.geomap.PointD;
-import org.eclipse.nebula.widgets.geomap.internal.SearchPage.SearchResult;
+import org.eclipse.nebula.widgets.geomap.internal.geomapbrowser.SearchPage.SearchResult;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.DisposeEvent;
@@ -144,7 +144,7 @@ public class ResultsPage extends AbstractPage implements Page {
                     SearchResult result = results[index];
                     GeoMap geoMap = mapBrowser.getGeoMap();
                     //geoMap.setZoom(result.getZoom() < 1 || result.getZoom() > mapWidget.getTileServer().getMaxZoom() ? 8 : result.getZoom());
-                    Point position = geoMap.computePosition(new PointD(result.getLon(), result.getLat()));
+                    Point position = GeoMapUtil.computePosition(new PointD(result.getLon(), result.getLat()), geoMap.getZoom());
                     geoMap.setCenterPosition(position);
                     geoMap.redraw();
                 }

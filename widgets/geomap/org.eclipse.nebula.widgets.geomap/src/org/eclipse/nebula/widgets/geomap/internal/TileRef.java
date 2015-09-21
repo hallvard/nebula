@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  ******************************************************************************/
 
-package org.eclipse.nebula.widgets.geomap;
+package org.eclipse.nebula.widgets.geomap.internal;
 
 /**
  * A single tile in the map. A tile has an x and y coordinate, but

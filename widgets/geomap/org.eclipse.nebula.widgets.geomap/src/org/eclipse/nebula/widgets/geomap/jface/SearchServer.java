@@ -11,21 +11,15 @@
 
 package org.eclipse.nebula.widgets.geomap.jface;
 
-import java.net.URL;
-import java.net.URLEncoder;
-import java.text.MessageFormat;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import java.util.logging.Level;
 
 import javax.xml.parsers.SAXParserFactory;
 
-import org.eclipse.nebula.widgets.geomap.GeoMap;
 import org.eclipse.nebula.widgets.geomap.PointD;
 import org.eclipse.nebula.widgets.geomap.internal.URLService;
-import org.eclipse.nebula.widgets.geomap.internal.SearchPage.SearchResult;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
