@@ -63,11 +63,11 @@ public class GeoMapBrowser extends Composite {
         pageContainer.setPages(searchPage, resultsPage, infoPage);
         pageContainer.showPage(0);
 
-        geoMap.addPropertyChangeListener(new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent event) {
-                infoPage.updateInfos();
-            }
-        });
+//        geoMap.addPropertyChangeListener(new PropertyChangeListener() {
+//            public void propertyChange(PropertyChangeEvent event) {
+//                infoPage.updateInfos();
+//            }
+//        });
         geoMap.addControlListener(new ControlAdapter() {
             public void controlResized(ControlEvent e) {
                 infoPage.updateInfos();

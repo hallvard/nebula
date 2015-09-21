@@ -41,7 +41,6 @@ public class InfoPage extends AbstractPage implements Page {
         Spec(String key) { this.key = key; this.geoMap = mapBrowser.getGeoMap(); }
     }
 
-
     private final GeoMapBrowser mapBrowser;
     private Table table;
     private Spec[] specs;

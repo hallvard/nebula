@@ -92,7 +92,7 @@ import org.eclipse.swt.widgets.Display;
  * @version $Revision$
  */
 public class GeoMap extends Canvas {
-    
+
     /**
      * Stats class, usefull for debugging caching of tiles,
      * also makes sure nothing is drawn (and loaded) that is
@@ -152,6 +152,7 @@ public class GeoMap extends Canvas {
     	
     	private volatile long stamp = zoomStamp.longValue();
         private final AtomicReference<ImageData> imageData = new AtomicReference<ImageData>();
+
         private Image image = null; // might as well be thread-local
 
         public AsyncImage(TileRef tile, String tileUrl) {

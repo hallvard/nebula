@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2012 Hallvard Tr¾tteberg.
+ * Copyright (c) 2012 Hallvard Trï¿½tteberg.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Hallvard Tr¾tteberg - initial API and implementation
+ *     Hallvard Trï¿½tteberg - initial API and implementation
  ******************************************************************************/
 package org.eclipse.nebula.widgets.geomap.jface;
 
@@ -331,6 +331,7 @@ public class GeoMapViewer extends ContentViewer {
 		}
 
 		private Point selectionStart = null;
+		private Point oldPosition;
 		
 		private boolean isSelecting() {
 			return selectionOffset != null;
@@ -368,7 +369,6 @@ public class GeoMapViewer extends ContentViewer {
 		@Override
 		public void mouseUp(MouseEvent e) {
 			if (isSelecting()) {
-				Point oldPosition = getElementPosition(selection, new Point(0, 0), false);
 				Point newPosition = new Point(oldPosition.x + selectionOffset.x, oldPosition.y + selectionOffset.y);
 				PointD lonLat = geoMap.getLongitudeLatitude(newPosition);
 				@SuppressWarnings("unused")
