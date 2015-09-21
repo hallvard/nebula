@@ -11,62 +11,39 @@
 
 package org.eclipse.nebula.widgets.geomap;
 
-import java.net.URL;
-import java.text.MessageFormat;
+import org.eclipse.nebula.widgets.geomap.internal.URLService;
 
 /**
  * This class encapsulates a tileserver, which has the concept
  * of a baseurl and a maximum zoom level. 
  */
-public class TileServer {
+public class TileServer extends URLService {
 
-    private String url;
-    private String urlFormat = "{0}/{1}/{2}.png"; // slippy format, must match getURLFormatArguments
     private final int maxZoom;
     private boolean broken;
 
-    private void parseUrl(String url) {
-		int pos = url.indexOf("{");
-		if (pos > 0) {
-			this.url = url.substring(0, pos);
-			this.urlFormat = url.substring(pos);
-		} else {
-			this.url = url; 
-		}
-    }
-
     public TileServer(String url, int maxZoom, String urlFormat) {
-    	this.url = url;
+    	super(url, urlFormat);
         this.maxZoom = maxZoom;
-        this.urlFormat = urlFormat;
     }
 
     public TileServer(String url, int maxZoom) {
-    	parseUrl(url);
+    	parseUrl(url, "{0}/{1}/{2}.png");
     	this.maxZoom = maxZoom;
     }
 
-    protected Object[] getURLFormatArguments(TileRef tile) {
+    @Override
+    protected Object[] getURLFormatArguments(Object ref) {
+    	TileRef tile = (TileRef) ref;
     	return new Object[]{String.valueOf(tile.z), String.valueOf(tile.x), String.valueOf(tile.y)};
     }
     
-    protected String getTileURL(TileRef tile, String urlFormat, Object[] formatArguments) {
-    	return url + MessageFormat.format(urlFormat, formatArguments);
-    }
-    
     public String getTileURL(TileRef tile) {
-    	return (urlFormat != null ? getTileURL(tile, urlFormat, getURLFormatArguments(tile)) : null);
-    }
-    
-    public String toString() {
-        return url;
+    	return super.getServiceURL(tile);
     }
 
     public int getMaxZoom() {
         return maxZoom;
-    }
-    public String getURL() {
-        return url;
     }
 
     public boolean isBroken() {
