@@ -11,4 +11,4 @@ Export-Package: org.eclipse.nebula.effects.stw;
    org.eclipse.swt.graphics,
    org.eclipse.swt.widgets",
  org.eclipse.nebula.effects.stw.transitions;uses:="org.eclipse.swt.graphics,org.eclipse.nebula.effects.stw"
-Bundle-Vendor: Eclipse.org
+Bundle-Vendor: Eclipse Nebula

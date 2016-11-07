@@ -31,14 +31,14 @@
 		<module>../../widgets/compositetable</module>
 		<module>../../widgets/oscilloscope</module>
 		<module>../../widgets/tablecombo</module>
-		<module>../../widgets/calendarcombo</module>
 		<module>../../widgets/xviewer</module>
-		<module>../../widgets/effects/</module>
 		<module>../../widgets/paperclips</module>
 		<module>../../widgets/cwt</module>
 		<module>../../widgets/cdatetime</module>
 		<module>../../widgets/visualization</module>
 		<module>../../widgets/richtext</module>
+		<module>../../widgets/effects</module>
+		<module>../../widgets/geomap</module>
 
 		<!-- Releng -->
 		<module>../org.eclipse.nebula.feature</module>

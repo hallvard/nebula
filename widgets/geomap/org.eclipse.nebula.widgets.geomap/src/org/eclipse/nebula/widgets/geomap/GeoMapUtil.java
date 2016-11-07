@@ -143,7 +143,7 @@ public class GeoMapUtil {
     /**
      * Zooms into and centers on the specified rectangle. 
      * @param geoMap the geoMap
-     * @param mapSize the size of the map, containes the zoom rectangle
+     * @param mapSize the size of the map, contains the zoom rectangle
      * @param rect the rectangle
      * @param maxZoom the maximum level to zoom to, or -1 to default to the geoMap's max zoom
      */

@@ -132,6 +132,4 @@ public class TitleControl extends Canvas {
     public Point computeSize(int wHint, int hHint, boolean changed) {
         return new Point(size.x, size.y);
     }
-    
-    
 }

@@ -15,15 +15,16 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.logging.Level;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.nebula.widgets.xviewer.Activator;
+import org.eclipse.nebula.widgets.xviewer.core.util.XViewerUtil;
 import org.eclipse.nebula.widgets.xviewer.util.internal.images.XViewerImageCache;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
@@ -34,21 +35,20 @@ import org.eclipse.ui.PlatformUI;
  * @author Donald G. Dunne
  */
 public class XViewerLib {
-   static Random random = new Random();
    private static final Date today = new Date();
    public final static int MILLISECS_PER_DAY = (1000 * 60 * 60 * 24);
+   public final static String MMDDYYHHMM = "MM/dd/yyyy hh:mm a";
 
    public static long daysTillToday(Date date) {
       return (date.getTime() - today.getTime()) / MILLISECS_PER_DAY;
    }
 
    public static String intern(String str) {
-      return (str == null) ? null : str.intern();
+      return XViewerUtil.intern(str);
    }
 
    public static String generateGuidStr() {
-      long rand = (random.nextLong() & 0x7FFFFFFFFFFFFFFFL) | 0x4000000000000000L;
-      return Long.toString(rand, 32) + Long.toString(System.currentTimeMillis() & 0xFFFFFFFFFFFFFL, 32);
+      return XViewerUtil.generateGuidStr();
    }
 
    public static void writeStringToFile(String str, File outFile) throws IOException {
@@ -195,16 +195,12 @@ public class XViewerLib {
       return XViewerImageCache.getImageDescriptor(imageName);
    }
 
-   public static String doubleToI18nString(double d) {
-      return doubleToI18nString(d, false);
-   }
-
-   public static String doubleToI18nString(double d, boolean blankIfZero) {
-      if (blankIfZero && d == 0) {
+   public static String getDateFromPattern(Date date, String pattern) {
+      SimpleDateFormat dateFormat = new SimpleDateFormat(pattern);
+      if (date == null) {
          return "";
-      } else {
-         return String.format("%4.2f", d);
       }
+      String result = dateFormat.format(date);
+      return result;
    }
-
 }

@@ -12,7 +12,9 @@
 package org.eclipse.nebula.effects.stw;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
@@ -54,6 +56,10 @@ public class TransitionManager {
     
     private List<TransitionListener> _listeners;
     
+    private int _transitionsBeingProcessed = 0;
+    
+    private Map<Integer, Image> _images = new HashMap<Integer, Image>();
+
     /**
      * Constructs a transition manager to handle transitions on the provided
      * transitionable object.
@@ -148,6 +154,7 @@ public class TransitionManager {
      * @param direction the direction of the transition
      */
     public void startTransition(int fromIndex, int toIndex, double direction) {
+        _transitionsBeingProcessed++;
         try {
             
             ////if any transition is in progress, cancel it and
@@ -169,19 +176,38 @@ public class TransitionManager {
             
             //capture an image of the "from" view
             Control from    = _transitionable.getControl(fromIndex);
-            Rectangle size  = from.getBounds();
-            Image imgFrom   = new Image(from.getDisplay(), size.width, size.height);
-            GC gcfrom       = new GC(from);
+            Rectangle fromSize  = from.getBounds();
+            Image imgFrom   = new Image(from.getDisplay(), fromSize.width, fromSize.height);
+            GC gcfrom = new GC(from);
             from.update();
             gcfrom.copyArea(imgFrom, 0, 0);
+            if (_transitionsBeingProcessed == 1) {
+                // Updates the control's cached image only if no previous
+                // transition processing has started. This is done to not
+                // add images from started transitions, like an image from
+                // a cubic rotation which is in the middle of the
+                // animation.
+                updateControlImage(imgFrom, fromIndex);
+            }
             gcfrom.dispose();
             
             //capture an image of the "to" view
             Control to  = _transitionable.getControl(toIndex);
-            _transitionable.setSelection(toIndex);
-            Image imgTo = ImageCapture.getImage(to, size.width, size.height, true);
-            _transitionable.setSelection(fromIndex);
-            
+            Image imgTo = null;
+            Rectangle toSize = to.getBounds();
+            Image ctrlImgTo = getControlImage(toIndex);
+            if (ctrlImgTo != null && fromIndex != toIndex) {
+                imgTo   = new Image(to.getDisplay(), toSize.width, toSize.height);
+                GC gcto       = new GC(imgTo);
+                Rectangle imgSize = ctrlImgTo.getBounds();
+                gcto.drawImage(ctrlImgTo, 0, 0, imgSize.width, imgSize.height,
+                    0, 0, toSize.width, toSize.height);
+                gcto.dispose();
+            } else {
+                _transitionable.setSelection(toIndex);
+                imgTo = ImageCapture.getImage(to, toSize.width, toSize.height, true);
+                _transitionable.setSelection(fromIndex);
+            }
             
             //create and show the canvas that the transition will be showed on
             Canvas canvas = new Canvas(_transitionable.getComposite(), SWT.DOUBLE_BUFFERED);
@@ -189,13 +215,14 @@ public class TransitionManager {
             canvas.setBounds(to.getBounds());
             
             //make the transition
-            GC gcOn = new GC(canvas);
-            _transition.start(imgFrom, imgTo, gcOn, direction);
+            _transition.start(imgFrom, imgTo, canvas, direction);
             _transitionable.setSelection(toIndex);
-            gcOn.dispose();
             
             //dispose the transition canvas
             canvas.dispose();
+            
+            //dispose the image of the "to" view
+            imgTo.dispose();
             
             //if the current transition was canceled to process
             //a new recent one, show the new selection and make
@@ -218,6 +245,7 @@ public class TransitionManager {
             
         } catch(Exception e) { e.printStackTrace(); }
         
+        _transitionsBeingProcessed--;
         
 //        try {
 //            
@@ -298,6 +326,65 @@ public class TransitionManager {
 //        } catch(Exception e) { e.printStackTrace(); }
         
         
+    }
+    
+    /**
+     * Update an image related to a control.
+     * @param img Image to update.
+     * @param ctrlIndex Index of the control related to the image.
+     */
+    private void updateControlImage(Image img, int ctrlIndex) {
+        Image previousImg = _images.put(ctrlIndex, img);
+        if (previousImg != null && !previousImg.equals(img)) {
+            previousImg.dispose();
+        }
+    }
+    
+    /**
+     * Returns the image related to a control.
+     * @param ctrlIndex Control's index related to the image.
+     * @return image related to the control's index.
+     */
+    private Image getControlImage(int ctrlIndex) {
+        return _images.get(ctrlIndex);
+    }
+    
+    /**
+     * Sets the control images used in the transitions processing.
+     * The control images are updated during the application execution.
+     * The old images are disposed during the control images update.
+     * This method should be invoked in the beginning of
+     * the application execution, to set the control images at an
+     * initial state. If this method is not invoked, the control
+     * images will be populated internally by this transition
+     * manager, but some flicks may be seen on the first transitions
+     * processing.
+     * @param images Control images used in the transitions
+     * processing.
+     */
+    public void setControlImages(Image[] images) {
+        clearControlImages();
+        for (int i = 0; i < images.length; i++) {
+            _images.put(i, new Image(
+                images[i].getDevice(), images[i].getImageData()));
+        }
+    }
+    
+    /**
+     * Clears the control images used in the
+     * transitions processing. Disposes all the images as well.
+     */
+    public void clearControlImages() {
+        for (Image image : _images.values()) {
+            image.dispose();
+        }
+        _images.clear();
+    }
+    
+    @Override
+    public void finalize() {
+        // Clear cached control images on finalize.
+        clearControlImages();
     }
     
     /**

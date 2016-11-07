@@ -94,5 +94,3 @@ public class PageContainer extends Composite {
         control.setBackground(getDisplay().getSystemColor(SWT.COLOR_WHITE));
     }
 }
-
-

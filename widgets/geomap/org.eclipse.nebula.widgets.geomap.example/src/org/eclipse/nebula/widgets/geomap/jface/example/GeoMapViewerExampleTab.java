@@ -9,10 +9,8 @@
  *******************************************************************************/
 package org.eclipse.nebula.widgets.geomap.jface.example;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
@@ -30,9 +28,9 @@ import org.eclipse.nebula.widgets.geomap.jface.LocationProvider;
 import org.eclipse.nebula.widgets.geomap.jface.OsmSearchServer;
 import org.eclipse.nebula.widgets.geomap.jface.SearchServer;
 import org.eclipse.nebula.widgets.geomap.jface.SearchServer.Result;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
@@ -148,7 +146,6 @@ public class GeoMapViewerExampleTab extends AbstractExampleTab {
 			}
 		});
 		contentViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				geoMapViewer.setSelection(event.getSelection(), true);
 			}
@@ -206,10 +203,11 @@ public class GeoMapViewerExampleTab extends AbstractExampleTab {
 			this.locationText = locationText;
 			this.committer = committer;
 		}
+
 		public String toString() {
 			return name + ", " + locationText + " @ " + location.x + ", " + location.y;
 		}
-		@Override
+		
 		public PointD getLonLat() {
 			return location;
 		}
@@ -285,10 +283,10 @@ public class GeoMapViewerExampleTab extends AbstractExampleTab {
 			}
 		});
 		geoMapViewer.setContentProvider(new ArrayContentProvider());
-		geoMapViewer.getControl().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				setViewerInputs(contributorLocations);
-			}
-		});
+//		geoMapViewer.getControl().getDisplay().asyncExec(new Runnable() {
+//			public void run() {
+//				setViewerInputs(contributorLocations);
+//			}
+//		});
 	}
 }

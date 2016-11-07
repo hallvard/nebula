@@ -326,3 +326,4 @@ public class GeoMapHelper implements GeoMapPositioned, GeoMapHelperListener {
     	internalGeoMapListeners.remove(listener);
     }
 }
+

@@ -1,13 +1,14 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Xviewer Plug-in
+Bundle-Name: XViewer Widget
 Bundle-SymbolicName: org.eclipse.nebula.widgets.xviewer;singleton:=true
-Bundle-Version: 0.9.9.qualifier
+Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.eclipse.nebula.widgets.xviewer.Activator
 Bundle-Vendor: Eclipse Nebula
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.ui.forms
+ org.eclipse.ui.forms,
+ org.eclipse.swt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: org.eclipse.nebula.widgets.xviewer,
@@ -18,3 +19,5 @@ Export-Package: org.eclipse.nebula.widgets.xviewer,
  org.eclipse.nebula.widgets.xviewer.edit,
  org.eclipse.nebula.widgets.xviewer.util
 Eclipse-ExtensibleAPI: true
+Import-Package: org.eclipse.nebula.widgets.xviewer.core.model,
+ org.eclipse.nebula.widgets.xviewer.core.util

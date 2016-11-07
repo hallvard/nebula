@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2015 CEA LIST.
+ * Copyright (c) 2015, 2016 CEA LIST.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -25,18 +25,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.bindings.keys.SWTKeySupport;
+import org.eclipse.nebula.widgets.richtext.toolbar.JavaCallbackListener;
 import org.eclipse.nebula.widgets.richtext.toolbar.ToolbarButton;
-import org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.browser.Browser;
@@ -63,7 +66,7 @@ import org.osgi.framework.FrameworkUtil;
 /**
  * Rich Text Editor control that wraps a {@link Browser} with enabled Javascript that shows a simple
  * HTML template containing a ckeditor as rich text editor.
- * 
+ *
  * <p>
  * The following style bits are supported:
  * <ul>
@@ -77,7 +80,7 @@ import org.osgi.framework.FrameworkUtil;
  * Additionally the SWT Browser style bits {@link SWT#MOZILLA} or {@link SWT#WEBKIT} can be set to
  * specify the native browser that should be used for rendering
  * </p>
- * 
+ *
  * @see <a href="http://ckeditor.com/">http://ckeditor.com/</a>
  */
 public class RichTextEditor extends Composite {
@@ -99,11 +102,14 @@ public class RichTextEditor extends Composite {
 	private final ListenerList modifyListener = new ListenerList(ListenerList.IDENTITY);
 	private final ListenerList keyListener = new ListenerList(ListenerList.IDENTITY);
 	private final ListenerList focusListener = new ListenerList(ListenerList.IDENTITY);
+	private final ListenerList javaCallbackListener = new ListenerList(ListenerList.IDENTITY);
 
-	private final ToolbarConfiguration toolbarConfig;
+	private final RichTextEditorConfiguration editorConfig;
 
 	private Shell embeddedShell;
 	private Point mouseDragPosition;
+
+	private boolean handleFocusChanges = true;
 
 	/**
 	 * Key of the system property to specify a fixed directory to unpack the ckeditor resources to.
@@ -123,33 +129,51 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Creates a {@link RichTextEditor} that wraps a {@link Browser} using the style bit
-	 * {@link SWT#NONE} and the default {@link ToolbarConfiguration}.
-	 * 
+	 * {@link SWT#NONE} and the default {@link RichTextEditorConfiguration}.
+	 *
 	 * @param parent
 	 *            the parent composite where this rich text editor should be added to
 	 */
 	public RichTextEditor(Composite parent) {
-		this(parent, null, SWT.NONE);
+		this(parent, (RichTextEditorConfiguration) null, SWT.NONE);
 	}
 
 	/**
 	 * Creates a {@link RichTextEditor} that wraps a {@link Browser} using the style bit
-	 * {@link SWT#NONE} and the given {@link ToolbarConfiguration}.
-	 * 
+	 * {@link SWT#NONE} and creates a {@link RichTextEditorConfiguration} out of the given
+	 * {@link org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration}.
+	 *
 	 * @param parent
 	 *            the parent composite where this rich text editor should be added to
 	 * @param toolbarConfig
-	 *            the {@link ToolbarConfiguration} to use or <code>null</code> for using the default
-	 *            {@link ToolbarConfiguration}
+	 *            the {@link org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration} to
+	 *            use or <code>null</code> for using the default
+	 *            {@link org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration}
+	 * @deprecated use constructors that take a {@link RichTextEditorConfiguration}
 	 */
-	public RichTextEditor(Composite parent, ToolbarConfiguration toolbarConfig) {
+	@Deprecated
+	public RichTextEditor(Composite parent, org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration toolbarConfig) {
 		this(parent, toolbarConfig, SWT.NONE);
 	}
 
 	/**
-	 * Creates a {@link RichTextEditor} that wraps a {@link Browser} using the given style bit and
-	 * the default {@link ToolbarConfiguration}.
-	 * 
+	 * Creates a {@link RichTextEditor} that wraps a {@link Browser} using the style bit
+	 * {@link SWT#NONE} and the given {@link RichTextEditorConfiguration}.
+	 *
+	 * @param parent
+	 *            the parent composite where this rich text editor should be added to
+	 * @param editorConfig
+	 *            the {@link RichTextEditorConfiguration} to use or <code>null</code> for using the default
+	 *            {@link RichTextEditorConfiguration}
+	 */
+	public RichTextEditor(Composite parent, RichTextEditorConfiguration editorConfig) {
+		this(parent, editorConfig, SWT.NONE);
+	}
+
+	/**
+	 * Creates a {@link RichTextEditor} that wraps a {@link Browser} using the given style bit
+	 *  and the default {@link RichTextEditorConfiguration}.
+	 *
 	 * @param parent
 	 *            the parent composite where this rich text editor should be added to
 	 * @param style
@@ -157,25 +181,46 @@ public class RichTextEditor extends Composite {
 	 *            information
 	 */
 	public RichTextEditor(Composite parent, int style) {
-		this(parent, null, style);
+		this(parent, (RichTextEditorConfiguration) null, style);
 	}
 
 	/**
 	 * Creates a {@link RichTextEditor} that wraps a {@link Browser} using the given style bit and
-	 * the given {@link ToolbarConfiguration}.
-	 * 
+	 * creates a {@link RichTextEditorConfiguration} out of the given {@link org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration}.
+	 *
 	 * @param parent
 	 *            the parent composite where this rich text editor should be added to
 	 * @param toolbarConfig
-	 *            the {@link ToolbarConfiguration} to use or <code>null</code> for using the default
-	 *            {@link ToolbarConfiguration}
+	 *            the {@link org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration} to use or <code>null</code> for using the default
+	 *            {@link org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration}
 	 * @param style
 	 *            the style of widget to construct, see {@link Browser} for further style bit
 	 *            information
-	 * 
+	 *
+	 * @see Browser
+	 * @deprecated use constructors that take a {@link RichTextEditorConfiguration}
+	 */
+	@Deprecated
+	public RichTextEditor(Composite parent, org.eclipse.nebula.widgets.richtext.toolbar.ToolbarConfiguration toolbarConfig, int style) {
+		this(parent, toolbarConfig != null ? new RichTextEditorConfiguration(toolbarConfig) : null, style);
+	}
+
+	/**
+	 * Creates a {@link RichTextEditor} that wraps a {@link Browser} using the given style bit
+	 * and the given {@link RichTextEditorConfiguration}.
+	 *
+	 * @param parent
+	 *            the parent composite where this rich text editor should be added to
+	 * @param editorConfig
+	 *            the {@link RichTextEditorConfiguration} to use or <code>null</code> for using the default
+	 *            {@link RichTextEditorConfiguration}
+	 * @param style
+	 *            the style of widget to construct, see {@link Browser} for further style bit
+	 *            information
+	 *
 	 * @see Browser
 	 */
-	public RichTextEditor(Composite parent, ToolbarConfiguration toolbarConfig, int style) {
+	public RichTextEditor(Composite parent, RichTextEditorConfiguration editorConfig, int style) {
 		super(parent, style);
 
 		setLayout(new FillLayout());
@@ -194,14 +239,24 @@ public class RichTextEditor extends Composite {
 		this.browser = new Browser(!embedded ? this : this.embeddedShell, browserStyle);
 		this.browser.setJavascriptEnabled(true);
 
-		if (toolbarConfig == null) {
-			this.toolbarConfig = new ToolbarConfiguration();
+		// init editor configuration
+		if (editorConfig == null) {
+			this.editorConfig = new RichTextEditorConfiguration();
 		}
 		else {
-			this.toolbarConfig = toolbarConfig;
+			this.editorConfig = editorConfig;
 		}
+		this.editorConfig.setBrowser(this.browser);
 
-		this.toolbarConfig.setBrowser(this.browser);
+		// if SWT.RESIZE is set, we update the configuration
+		if (resizable) {
+			boolean specifyMin = ((getStyle() & SWT.MIN) != 0);
+			int minWidth = specifyMin ? getMinimumWidth() : 0;
+			int minHeight = specifyMin ? getMinimumHeight() : 0;
+			this.editorConfig.setResizable(resizable);
+			this.editorConfig.setMinSize(minWidth, minHeight);
+			this.editorConfig.setResizeDirection("both");
+		}
 
 		this.browser.setUrl(templateURL.toString());
 
@@ -210,11 +265,28 @@ public class RichTextEditor extends Composite {
 		this.browserFunctions.add(new KeyReleasedFunction(browser, "keyReleased"));
 		this.browserFunctions.add(new FocusInFunction(browser, "focusIn"));
 		this.browserFunctions.add(new FocusOutFunction(browser, "focusOut"));
-		this.browserFunctions.add(new BrowserFunction(browser, "configureToolbar") {
+		this.browserFunctions.add(new JavaExecutionStartedFunction(browser, "javaExecutionStarted"));
+		this.browserFunctions.add(new JavaExecutionFinishedFunction(browser, "javaExecutionFinished"));
+		this.browserFunctions.add(new BrowserFunction(browser, "customizeToolbar") {
 			@Override
 			public Object function(Object[] arguments) {
-				RichTextEditor.this.toolbarConfig.configureToolbar();
+				RichTextEditor.this.editorConfig.customizeToolbar();
 				return super.function(arguments);
+			}
+		});
+		this.browserFunctions.add(new BrowserFunction(browser, "getAllOptions") {
+			@Override
+			public Object function(Object[] arguments) {
+				// transform the configuration options map into an Object array
+				// necessary as map is not a supported return value
+				Map<String, Object> options = RichTextEditor.this.editorConfig.getAllOptions();
+				Object[] result = new Object[options.size()*2];
+				int i = 0;
+				for (Map.Entry<String, Object> entry : options.entrySet()) {
+					result[i++] = entry.getKey();
+					result[i++] = entry.getValue() != null ? entry.getValue() : "";
+				}
+				return result;
 			}
 		});
 
@@ -229,18 +301,6 @@ public class RichTextEditor extends Composite {
 				CKEDITOR_SHIFT = (Double) browser.evaluate("return getCKEditorSHIFT()");
 
 				editorLoaded = true;
-
-				if (resizable) {
-					boolean specifyMin = ((getStyle() & SWT.MIN) != 0);
-					int minWidth = specifyMin ? getMinimumWidth() : 0;
-					int minHeight = specifyMin ? getMinimumHeight() : 0;
-					browser.evaluate("setResizeEnabled(true, " + minWidth + ", " + minHeight + ");");
-				}
-
-				if (RichTextEditor.this.toolbarConfig.toolbarCollapsible) {
-					browser.evaluate("setToolbarCollapsible(true);");
-					browser.evaluate("setToolbarInitialExpanded(" + RichTextEditor.this.toolbarConfig.toolbarInitialExpanded + ");");
-				}
 
 				// only add this function for resizable inline editing
 				if (resizable && embedded) {
@@ -319,8 +379,8 @@ public class RichTextEditor extends Composite {
 
 	@Override
 	public void dispose() {
-		// dispose the toolbar configuration
-		toolbarConfig.dispose();
+		// dispose the editor configuration
+		editorConfig.dispose();
 		// dispose the registered BrowserFunctions
 		for (BrowserFunction function : browserFunctions) {
 			function.dispose();
@@ -358,7 +418,7 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Set text to the editing area. Can contain HTML tags for styling.
-	 * 
+	 *
 	 * @param text
 	 *            The text to set to the editing area.
 	 */
@@ -376,7 +436,7 @@ public class RichTextEditor extends Composite {
 	 * Insert text content into the currently selected position in the editor in WYSIWYG mode. The
 	 * styles of the selected element will be applied to the inserted text. Spaces around the text
 	 * will be left untouched.
-	 * 
+	 *
 	 * @param text
 	 *            Text to be inserted into the editor.
 	 */
@@ -386,7 +446,7 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Inserts HTML code into the currently selected position in the editor in WYSIWYG mode.
-	 * 
+	 *
 	 * @param html
 	 *            HTML code to be inserted into the editor.
 	 */
@@ -396,7 +456,7 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Returns the current selected text without any markup tags.
-	 * 
+	 *
 	 * @return The current selected text without any markup tags.
 	 */
 	public String getSelectedText() {
@@ -408,7 +468,7 @@ public class RichTextEditor extends Composite {
 	 * <p>
 	 * <i>Note: It will not contain the parent tag.</i>
 	 * </p>
-	 * 
+	 *
 	 * @return The current selected text containing any markup styling tags.
 	 */
 	public String getSelectedHTML() {
@@ -420,7 +480,7 @@ public class RichTextEditor extends Composite {
 	 * Returns the editable state.
 	 *
 	 * @return whether or not the receiver is editable
-	 * 
+	 *
 	 */
 	public boolean isEditable() {
 		Object result = browser.evaluate("return isEditable()");
@@ -431,8 +491,18 @@ public class RichTextEditor extends Composite {
 	 * Update the toolbar. Typically used if buttons where added or removed at runtime.
 	 */
 	public void updateToolbar() {
-		toolbarConfig.configureToolbar();
+		editorConfig.customizeToolbar();
 		browser.evaluate("updateToolbar();");
+	}
+
+	/**
+	 * Update the editor. Basically it will destroy and recreate the CKEditor.
+	 * Needed to be used if a basic configuration is changed, e.g. the language.
+	 *
+	 * @since 1.1
+	 */
+	public void updateEditor() {
+		browser.evaluate("updateEditor();");
 	}
 
 	/**
@@ -446,42 +516,114 @@ public class RichTextEditor extends Composite {
 	}
 
 	/**
+	 * This method returns the {@link RichTextEditorConfiguration} that is used to configure this
+	 * {@link RichTextEditor}. It can be used to change some configurations at runtime.
+	 * <p>
+	 * <b>Note:</b> After configuration values have been changed it is necessary to call
+	 * {@link #updateEditor()} so the configurations are applied.
+	 * </p>
+	 *
+	 * @return The {@link RichTextEditorConfiguration} used to configure this
+	 *         {@link RichTextEditor}.
+	 *
+	 * @since 1.1
+	 */
+	public RichTextEditorConfiguration getEditorConfiguration() {
+		return this.editorConfig;
+	}
+
+	/**
+	 * Sets the user interface language localization to use. Only the language part of the
+	 * {@link Locale} will be used. This method triggers an immediate update of the editor instance.
+	 *
+	 * @param locale
+	 *            The user interface language localization to use.
+	 * @since 1.1
+	 */
+	public void setLanguage(Locale locale) {
+		setLanguage(locale, true);
+	}
+
+	/**
+	 *
+	 * @param locale
+	 *            The user interface language localization to use.
+	 * @param update
+	 *            <code>true</code> if the editor should be updated immediately, <code>false</code>
+	 *            if the update should not be executed. In that case {@link #updateEditor()} needs
+	 *            to be executed explicitly.
+	 * @since 1.1
+	 */
+	public void setLanguage(Locale locale, boolean update) {
+		setLanguage(locale.getLanguage(), update);
+	}
+
+	/**
+	 * Sets the user interface language localization to use. This method triggers an immediate
+	 * update of the editor instance.
+	 *
+	 * @param language
+	 *            The user interface language localization to use.
+	 * @since 1.1
+	 */
+	public void setLanguage(String language) {
+		setLanguage(language, true);
+	}
+
+	/**
+	 *
+	 * @param language
+	 *            The user interface language localization to use.
+	 * @param update
+	 *            <code>true</code> if the editor should be updated immediately, <code>false</code>
+	 *            if the update should not be executed. In that case {@link #updateEditor()} needs
+	 *            to be executed explicitly.
+	 * @since 1.1
+	 */
+	public void setLanguage(String language, boolean update) {
+		this.editorConfig.setLanguage(language);
+		if (update) {
+			updateEditor();
+		}
+	}
+
+	/**
 	 * Adds the given {@link ToolbarButton} to the toolbar of the editor.
-	 * 
+	 *
 	 * @param button
 	 *            The button to add.
-	 * 
-	 * @see ToolbarConfiguration#addToolbarButton(ToolbarButton)
+	 *
+	 * @see RichTextEditorConfiguration#addToolbarButton(ToolbarButton)
 	 */
 	public void addToolbarButton(ToolbarButton button) {
-		toolbarConfig.addToolbarButton(button);
+		editorConfig.addToolbarButton(button);
 	}
 
 	/**
 	 * Adds the given {@link ToolbarButton} to the toolbar of the editor. Uses the given
 	 * {@link BrowserFunction} as callback for the button.
-	 * 
+	 *
 	 * @param button
 	 *            The button to add.
 	 * @param function
 	 *            The function to use as callback.
-	 * 
-	 * @see ToolbarConfiguration#addToolbarButton(ToolbarButton, BrowserFunction)
+	 *
+	 * @see RichTextEditorConfiguration#addToolbarButton(ToolbarButton, BrowserFunction)
 	 */
 	public void addToolbarButton(ToolbarButton button, BrowserFunction function) {
-		toolbarConfig.addToolbarButton(button, function);
+		editorConfig.addToolbarButton(button, function);
 	}
 
 	/**
 	 * Removes the given {@link ToolbarButton} from the toolbar of the editor.
-	 * 
+	 *
 	 * @param button
 	 *            The button to remove.
-	 * 
-	 * @see ToolbarConfiguration#removeToolbarButton(ToolbarButton)
+	 *
+	 * @see RichTextEditorConfiguration#removeToolbarButton(ToolbarButton)
 	 */
 	public void removeToolbarButton(ToolbarButton button) {
-		toolbarConfig.removeToolbarButton(button);
+		editorConfig.removeToolbarButton(button);
 	}
 
 	@Override
@@ -529,13 +671,14 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Notify the registered {@link FocusListener} that the editor gained focus.
-	 * 
+	 *
 	 * @param event
 	 *            The event to fire.
 	 */
 	public void notifyFocusGained(final FocusEvent event) {
 		checkWidget();
-		if (event == null) {
+		// do not handle focus events, e.g. in case a Java callback execution is running
+		if (event == null || !this.handleFocusChanges) {
 			return;
 		}
 
@@ -562,13 +705,14 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Notify the registered {@link FocusListener} that the editor lost focus.
-	 * 
+	 *
 	 * @param event
 	 *            The event to fire.
 	 */
 	public void notifyFocusLost(final FocusEvent event) {
 		checkWidget();
-		if (event == null) {
+		// do not handle focus events, e.g. in case a Java callback execution is running
+		if (event == null || !this.handleFocusChanges) {
 			return;
 		}
 
@@ -591,6 +735,11 @@ public class RichTextEditor extends Composite {
 		for (int i = 0; i < listeners.length; ++i) {
 			((FocusListener) listeners[i]).focusLost(event);
 		}
+	}
+
+	@Override
+	public void setBounds(Rectangle rect) {
+		setBounds(rect.x, rect.y, rect.width, rect.height);
 	}
 
 	@Override
@@ -624,7 +773,7 @@ public class RichTextEditor extends Composite {
 	/**
 	 * Used in embedded mode to support manual resizing of the editor. Executed via callback on
 	 * ckeditor resize.
-	 * 
+	 *
 	 * @param x
 	 *            the new x coordinate for the receiver
 	 * @param y
@@ -648,9 +797,9 @@ public class RichTextEditor extends Composite {
 	/**
 	 * Returns the minimum height that should be used for initially open the editor in embedded
 	 * mode. It is also used to specify the resize minimum height if the editor was created using
-	 * the style bit {@link SWT#MIN}. Using the default {@link ToolbarConfiguration} this is 150 for
-	 * the toolbar and 50 for showing one row in the editor area.
-	 * 
+	 * the style bit {@link SWT#MIN}. Using the default {@link RichTextEditorConfiguration} this is
+	 * 150 for the toolbar and 50 for showing one row in the editor area.
+	 *
 	 * @return The minimum height to use for initially open the editor in embedded mode and for
 	 *         editor resize minimum in case the editor was created with {@link SWT#MIN}
 	 */
@@ -661,9 +810,9 @@ public class RichTextEditor extends Composite {
 	/**
 	 * Returns the minimum width that should be used for initially open the editor in embedded mode.
 	 * It is also used to specify the resize minimum width if the editor was created using the style
-	 * bit {@link SWT#MIN}. Using the default {@link ToolbarConfiguration} this is 370 for showing
-	 * the default options in three lines of the toolbar.
-	 * 
+	 * bit {@link SWT#MIN}. Using the default {@link RichTextEditorConfiguration} this is 370 for
+	 * showing the default options in three lines of the toolbar.
+	 *
 	 * @return The minimum width to use for initially open the editor in embedded mode and for
 	 *         editor resize minimum in case the editor was created with {@link SWT#MIN}
 	 */
@@ -674,7 +823,7 @@ public class RichTextEditor extends Composite {
 	/**
 	 * Executes the specified script in the internal {@link Browser}. Can be used to execute
 	 * Javascript directly in the browser from a listener if necessary.
-	 * 
+	 *
 	 * @param script
 	 *            the script with javascript commands
 	 * @return <code>true</code> if the operation was successful and <code>false</code> otherwise
@@ -687,7 +836,7 @@ public class RichTextEditor extends Composite {
 	/**
 	 * Evaluates the specified script in the internal {@link Browser} and returns the result. Can be
 	 * used to evaluate Javascript directly in the browser from a listener if necessary.
-	 * 
+	 *
 	 * @param script
 	 *            the script with javascript commands
 	 * @return the return value, if any, of executing the script
@@ -695,6 +844,25 @@ public class RichTextEditor extends Composite {
 	 */
 	public Object evaluateJavascript(String script) {
 		return this.browser.evaluate(script);
+	}
+
+	/**
+	 * @return <code>true</code> if focus changes are handled, <code>false</code> if not
+	 */
+	public boolean isHandleFocusChanges() {
+		return handleFocusChanges;
+	}
+
+	/**
+	 * Configure whether focus changes should be handled or not. A typical use case for disabling
+	 * the focus handling is for example to open a dialog from a Java callback via custom toolbar
+	 * button.
+	 *
+	 * @param handleFocusChanges
+	 *            <code>true</code> if focus changes should be handled, <code>false</code> if not
+	 */
+	public void setHandleFocusChanges(boolean handleFocusChanges) {
+		this.handleFocusChanges = handleFocusChanges;
 	}
 
 	@Override
@@ -715,7 +883,7 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Notify the registered {@link KeyListener} that a key was pressed.
-	 * 
+	 *
 	 * @param event
 	 *            The event to fire.
 	 */
@@ -748,7 +916,7 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Notify the registered {@link KeyListener} that a key was released.
-	 * 
+	 *
 	 * @param event
 	 *            The event to fire.
 	 */
@@ -850,7 +1018,7 @@ public class RichTextEditor extends Composite {
 	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
 	 *                the receiver</li>
 	 *                </ul>
-	 * 
+	 *
 	 * @see #addModifyListener(ModifyListener)
 	 * @see #removeModifyListener(ModifyListener)
 	 */
@@ -883,7 +1051,7 @@ public class RichTextEditor extends Composite {
 
 	/**
 	 * Creates a SWT {@link KeyEvent} out of the given informations.
-	 * 
+	 *
 	 * @param keyCode
 	 *            The keyCode sent by ckeditor.
 	 * @param modifier
@@ -1063,6 +1231,48 @@ public class RichTextEditor extends Composite {
 		return new KeyEvent(event);
 	}
 
+	/**
+	 * Add a {@link JavaCallbackListener} that is triggered on executing a Java callback via custom
+	 * {@link ToolbarButton}.
+	 *
+	 * @param listener
+	 *            The {@link JavaCallbackListener} to add.
+	 */
+	public void addJavaCallbackListener(JavaCallbackListener listener) {
+		checkWidget();
+		if (listener == null)
+			SWT.error(SWT.ERROR_NULL_ARGUMENT);
+		this.javaCallbackListener.add(listener);
+	}
+
+	/**
+	 * Remove a {@link JavaCallbackListener} that is triggered on executing a Java callback via
+	 * custom {@link ToolbarButton}.
+	 *
+	 * @param listener
+	 *            The {@link JavaCallbackListener} to remove.
+	 */
+	public void removeJavaCallbackListener(JavaCallbackListener listener) {
+		checkWidget();
+		if (listener == null)
+			SWT.error(SWT.ERROR_NULL_ARGUMENT);
+		this.javaCallbackListener.remove(listener);
+	}
+
+	private void doNotifyJavaExecutionStarted() {
+		Object[] listeners = this.javaCallbackListener.getListeners();
+		for (int i = 0; i < listeners.length; ++i) {
+			((JavaCallbackListener) listeners[i]).javaExecutionStarted();
+		}
+	}
+
+	private void doNotifyJavaExecutionFinished() {
+		Object[] listeners = this.javaCallbackListener.getListeners();
+		for (int i = 0; i < listeners.length; ++i) {
+			((JavaCallbackListener) listeners[i]).javaExecutionFinished();
+		}
+	}
+
 	private FocusEvent createFocusEvent() {
 		Event event = new Event();
 		event.display = this.getDisplay();
@@ -1166,6 +1376,41 @@ public class RichTextEditor extends Composite {
 		}
 	}
 
+	/**
+	 * Callback function that is called via Javascript before a java callback is triggered via
+	 * custom toolbar button. Is registered for the Javascript function name
+	 * <i>javaExecutionStarted</i>.
+	 */
+	class JavaExecutionStartedFunction extends BrowserFunction {
+
+		public JavaExecutionStartedFunction(Browser browser, String name) {
+			super(browser, name);
+		}
+
+		@Override
+		public Object function(Object[] arguments) {
+			doNotifyJavaExecutionStarted();
+			return super.function(arguments);
+		}
+	}
+
+	/**
+	 * Callback function that is called via Javascript after a java callback is triggered via custom
+	 * toolbar button. Is registered for the Javascript function name <i>javaExecutionFinished</i>.
+	 */
+	class JavaExecutionFinishedFunction extends BrowserFunction {
+
+		public JavaExecutionFinishedFunction(Browser browser, String name) {
+			super(browser, name);
+		}
+
+		@Override
+		public Object function(Object[] arguments) {
+			doNotifyJavaExecutionFinished();
+			return super.function(arguments);
+		}
+	}
+
 	private static void locateTemplateURL() {
 		templateURL = RichTextEditor.class.getResource("resources/template.html");
 
@@ -1183,21 +1428,46 @@ public class RichTextEditor extends Composite {
 
 				@Override
 				public void run() {
-					String path = RichTextEditor.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-					String decodedPath = null;
-					try {
-						decodedPath = URLDecoder.decode(path, "UTF-8");
-					} catch (UnsupportedEncodingException e1) {
-						e1.printStackTrace();
+					URL jarURL = RichTextEditor.class.getProtectionDomain().getCodeSource().getLocation();
+					File jarFileReference = null;
+					if (jarURL.getProtocol().equals("file")) {
+						try {
+							String decodedPath = URLDecoder.decode(jarURL.getPath(), "UTF-8");
+							jarFileReference = new File(decodedPath);
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
+					}
+					else {
+						// temporary download of jar file
+						// necessary to be able to unzip the resources
+						try {
+							final Path jar = Files.createTempFile("richtext", ".jar");
+							Files.copy(jarURL.openStream(), jar, StandardCopyOption.REPLACE_EXISTING);
+							jarFileReference = jar.toFile();
+
+							// delete the temporary file
+							Runtime.getRuntime().addShutdownHook(new Thread() {
+								@Override
+								public void run() {
+									try {
+										Files.delete(jar);
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+								}
+							});
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 
-					if (decodedPath != null) {
-						try (JarFile jarFile = new JarFile(new File(decodedPath))) {
+					if (jarFileReference != null) {
+						try (JarFile jarFile = new JarFile(jarFileReference)) {
 							String unpackDirectory = System.getProperty(JAR_UNPACK_LOCATION_PROPERTY);
 							// create the directory to unzip to
-							final java.nio.file.Path tempDir =
-									(unpackDirectory == null)
-											? Files.createTempDirectory("richtext") : Files.createDirectories(Paths.get(unpackDirectory));
+							final java.nio.file.Path tempDir = (unpackDirectory == null)
+									? Files.createTempDirectory("richtext") : Files.createDirectories(Paths.get(unpackDirectory));
 
 							// only register the hook to delete the temp directory after shutdown if
 							// a temporary directory was used

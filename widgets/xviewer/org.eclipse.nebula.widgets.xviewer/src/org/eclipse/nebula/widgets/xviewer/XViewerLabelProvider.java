@@ -11,11 +11,13 @@
 
 package org.eclipse.nebula.widgets.xviewer;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import org.eclipse.jface.viewers.ITableColorProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.nebula.widgets.xviewer.core.model.XViewerColumn;
 import org.eclipse.nebula.widgets.xviewer.util.internal.XViewerLog;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
@@ -87,6 +89,15 @@ public abstract class XViewerLabelProvider implements ITableLabelProvider, ITabl
             Long key = preComputedColumn.getKey(element);
             String cachedValue = xViewerColumn.getPreComputedValue(key);
             String result = ((IXViewerPreComputedColumn) xViewerColumn).getText(element, key, cachedValue);
+            if (result == null) {
+               // Give a single chance to populate a potentially new element, else store empty string to ensure good performance
+               preComputedColumn.populateCachedValues(Collections.singleton(element),
+                  xViewerColumn.getPreComputedValueMap());
+               result = xViewerColumn.getPreComputedValue(key);
+               if (result == null) {
+                  xViewerColumn.getPreComputedValueMap().put(key, "");
+               }
+            }
             return result;
          }
          // First check value column's methods
@@ -178,10 +189,7 @@ public abstract class XViewerLabelProvider implements ITableLabelProvider, ITabl
          }
          // First check value column's methods
          if (xViewerColumn instanceof IXViewerValueColumn) {
-            Object obj = ((IXViewerValueColumn) xViewerColumn).getBackingData(element, xViewerColumn, columnIndex);
-            if (obj != null) {
-               return obj;
-            }
+            return ((IXViewerValueColumn) xViewerColumn).getBackingData(element, xViewerColumn, columnIndex);
          }
       } catch (Exception ex) {
          return XViewerCells.getCellExceptionString(ex);

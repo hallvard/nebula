@@ -120,5 +120,3 @@ public abstract class AbstractPage implements Page {
     
     protected abstract void initContent(PageContainer container, Composite composite);
 }
-
-

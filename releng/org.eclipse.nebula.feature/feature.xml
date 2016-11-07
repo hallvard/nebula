@@ -2,18 +2,15 @@
 <feature
       id="org.eclipse.nebula.feature"
       label="Nebula Widgets"
-      version="1.0.0.qualifier">
+      version="1.1.0.qualifier"
+      provider-name="Eclipse Nebula">
 
-   <description url="http://www.example.com/description">
+   <description url="http://eclipse.org/nebula">
       This feature contains the Eclipse Nebula widgets.
    </description>
 
-   <copyright url="http://www.example.com/copyright">
-      [Enter Copyright Description here.]
-   </copyright>
-
-   <license url="http://www.example.com/license">
-      [Enter License Description here.]
+   <license url="%licenseURL">
+      %license
    </license>
 
    <url>
@@ -22,10 +19,6 @@
 
    <includes
          id="org.eclipse.nebula.widgets.oscilloscope.feature"
-         version="0.0.0"/>
-
-   <includes
-         id="org.eclipse.nebula.widgets.calendarcombo.feature"
          version="0.0.0"/>
 
    <includes
@@ -57,10 +50,6 @@
          version="0.0.0"/>
 
    <includes
-         id="org.eclipse.nebula.effects.stw.feature"
-         version="0.0.0"/>
-
-   <includes
          id="org.eclipse.nebula.widgets.ganttchart.feature"
          version="0.0.0"/>
 
@@ -86,6 +75,14 @@
 
    <includes
          id="org.eclipse.nebula.widgets.richtext.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.nebula.effects.stw.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.nebula.widgets.geomap.feature"
          version="0.0.0"/>
 
 </feature>

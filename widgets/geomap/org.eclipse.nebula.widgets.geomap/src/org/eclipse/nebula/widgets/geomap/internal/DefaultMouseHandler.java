@@ -38,14 +38,13 @@ public abstract class DefaultMouseHandler implements MouseListener, MouseWheelLi
 	
 	/**
 	 * @param geoMap
-	 * @param control 
 	 */
 	public DefaultMouseHandler(GeoMapPositioned geoMap) {
 		this.geoMap = geoMap;
 	}
 
 	/**
-	 * @return
+	 * @return the object (of type GeoMapPositioned) that this handler operates on
 	 */
 	protected GeoMapPositioned getGeoMap() {
 		return this.geoMap;

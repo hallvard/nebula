@@ -66,17 +66,17 @@ import org.eclipse.swt.widgets.Composite;
 
 public class GeoMap extends InternalGeoMap {
 
+	/**
+	 * About message.
+	 */
 	@SuppressWarnings({ "nls" })
 	public static final String ABOUT_MSG =
         "GeoMap - Minimal Openstreetmap/Maptile Viewer\r\n" +
         "Requirements: Java + SWT. Opensource and licensed under EPL.\r\n" +
         "\r\n" +
-        "Web/Source: <a href=\"http://mappanel.sourceforge.net\">http://mappanel.sourceforge.net</a>\r\n" +
-        "Written by stepan.rutz. Contact <a href=\"mailto:stepan.rutz@gmx.de?subject=SWT%20MapWidget\">stepan.rutz@gmx.de</a>\r\n\r\n" +
+        "Web/Source: <a href=\"http://eclipse.org/nebula\">http://eclipse.org/nebula</a>\r\n" +
+        "Written by Stephan Rutz. Maintained by the Eclipse Nebula Project.\r\n\r\n" +
         "Tileserver and Nominationserver are accessed online and are part of Openstreetmap.org and not of this software.\r\n";
-    	//"MapPanel gets all its data the openstreetmap servers.\r\n\r\n" +
-        //"Please support the effort at <a href=\"http://www.openstreetmap.org\">http://www.openstreetmap.org/</a>.\r\n";
-        //"Please keep in mind this application is just a alternative renderer for swt.\r\n";
 
     private Point mouseCoords = new Point(0, 0);
     private DefaultMouseHandler defaultMouseHandler = new DefaultMouseHandler(this) {

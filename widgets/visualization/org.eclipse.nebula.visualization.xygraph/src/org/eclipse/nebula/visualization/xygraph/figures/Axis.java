@@ -61,7 +61,7 @@ public class Axis extends LinearScale {
 
 	final private List<Trace> traceList = new ArrayList<Trace>();
 
-	private XYGraph xyGraph;
+	private IXYGraph xyGraph;
 	private Grid grid;
 
 	private Font titleFont;
@@ -244,7 +244,7 @@ public class Axis extends LinearScale {
 		graphics.setFont(titleFont);
 		final Dimension titleSize = FigureUtilities.getTextExtents(title, titleFont);
 		if (isHorizontal()) {
-			if (getTickLablesSide() == LabelSide.Primary)
+			if (getTickLabelSide() == LabelSide.Primary)
 				graphics.drawText(title, bounds.x + bounds.width / 2 - titleSize.width / 2, bounds.y + bounds.height
 						- titleSize.height);
 			else
@@ -253,7 +253,7 @@ public class Axis extends LinearScale {
 			final int w = titleSize.height;
 			final int h = titleSize.width + 1;
 
-			if (getTickLablesSide() == LabelSide.Primary) {
+			if (getTickLabelSide() == LabelSide.Primary) {
 				GraphicsUtil.drawVerticalText(graphics, title, bounds.x, bounds.y + bounds.height / 2 - h / 2, false);
 			} else {
 				GraphicsUtil.drawVerticalText(graphics, title, bounds.x + bounds.width - w, bounds.y + bounds.height
@@ -599,6 +599,17 @@ public class Axis extends LinearScale {
 	 * @param xyGraph
 	 *            the xyGraph to set
 	 */
+	public void setXyGraph(final IXYGraph xyGraph) {
+		this.xyGraph = xyGraph;
+	}
+
+	/**
+	 * Use {@link #setXyGraph(IXYGraph)} instead
+	 * 
+	 * @param xyGraph
+	 *            the xyGraph to set
+	 */
+	@Deprecated
 	public void setXyGraph(final XYGraph xyGraph) {
 		this.xyGraph = xyGraph;
 	}
@@ -708,7 +719,7 @@ public class Axis extends LinearScale {
 	 *         false if it is on the secondary side(Top/Right).
 	 */
 	public boolean isOnPrimarySide() {
-		return getTickLablesSide() == LabelSide.Primary;
+		return getTickLabelSide() == LabelSide.Primary;
 	}
 
 	/** Pan axis according to start/end from mouse listener */
